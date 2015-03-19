@@ -1,0 +1,215 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files (x86)\\nodejs\\\\node.exe',
+1 verbose cli   'C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'install',
+1 verbose cli   'node_dtls' ]
+2 info using npm@2.5.1
+3 info using node@v0.12.0
+4 verbose node symlink C:\Program Files (x86)\nodejs\\node.exe
+5 warn package.json node_dtls@0.0.2 No repository field.
+6 silly cache add args [ 'node_dtls', null ]
+7 verbose cache add spec node_dtls
+8 silly cache add parsed spec { raw: 'node_dtls',
+8 silly cache add   scope: null,
+8 silly cache add   name: 'node_dtls',
+8 silly cache add   rawSpec: '',
+8 silly cache add   spec: '*',
+8 silly cache add   type: 'range' }
+9 verbose addNamed node_dtls@*
+10 silly addNamed semver.valid null
+11 silly addNamed semver.validRange *
+12 silly addNameRange { name: 'node_dtls', range: '*', hasData: false }
+13 silly mapToRegistry name node_dtls
+14 silly mapToRegistry using default registry
+15 silly mapToRegistry registry https://registry.npmjs.org/
+16 silly mapToRegistry uri https://registry.npmjs.org/node_dtls
+17 verbose addNameRange registry:https://registry.npmjs.org/node_dtls not in flight; fetching
+18 verbose request uri https://registry.npmjs.org/node_dtls
+19 verbose request no auth needed
+20 info attempt registry request try #1 at 13:54:10
+21 verbose request id d4a0708c7d6e5fab
+22 http request GET https://registry.npmjs.org/node_dtls
+23 http 200 https://registry.npmjs.org/node_dtls
+24 silly get cb [ 200,
+24 silly get   { date: 'Thu, 19 Mar 2015 11:54:14 GMT',
+24 silly get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+24 silly get     etag: '"63JGWPJCWH3QIYVYP7007CSMF"',
+24 silly get     'content-type': 'application/json',
+24 silly get     'cache-control': 'max-age=60',
+24 silly get     'content-length': '6395',
+24 silly get     'accept-ranges': 'bytes',
+24 silly get     via: '1.1 varnish',
+24 silly get     age: '0',
+24 silly get     'x-served-by': 'cache-fra1241-FRA',
+24 silly get     'x-cache': 'MISS',
+24 silly get     'x-cache-hits': '0',
+24 silly get     'x-timer': 'S1426766054.355446,VS0,VE102',
+24 silly get     vary: 'Accept',
+24 silly get     'keep-alive': 'timeout=10, max=50',
+24 silly get     connection: 'Keep-Alive' } ]
+25 verbose get saving node_dtls to C:\Users\Jori\AppData\Roaming\npm-cache\registry.npmjs.org\node_dtls\.cache.json
+26 verbose getCacheStat cache creation not in flight; initializing
+27 verbose makeCacheDir UID & GID are irrelevant on win32
+28 silly addNameRange number 2 { name: 'node_dtls', range: '*', hasData: true }
+29 silly addNameRange versions [ 'node_dtls', [ '0.0.1', '0.0.2' ] ]
+30 verbose addNamed node_dtls@0.0.2
+31 silly addNamed semver.valid 0.0.2
+32 silly addNamed semver.validRange 0.0.2
+33 silly mapToRegistry name node_dtls
+34 silly mapToRegistry using default registry
+35 silly mapToRegistry registry https://registry.npmjs.org/
+36 silly mapToRegistry uri https://registry.npmjs.org/node_dtls
+37 verbose addRemoteTarball https://registry.npmjs.org/node_dtls/-/node_dtls-0.0.2.tgz not in flight; adding
+38 verbose addRemoteTarball [ 'https://registry.npmjs.org/node_dtls/-/node_dtls-0.0.2.tgz',
+38 verbose addRemoteTarball   '7383dbfd2a6f91c5a39647b3e86a77f12555cc39' ]
+39 info retry fetch attempt 1 at 13:54:10
+40 info attempt registry request try #1 at 13:54:10
+41 http fetch GET https://registry.npmjs.org/node_dtls/-/node_dtls-0.0.2.tgz
+42 http fetch 200 https://registry.npmjs.org/node_dtls/-/node_dtls-0.0.2.tgz
+43 silly fetchAndShaCheck shasum 7383dbfd2a6f91c5a39647b3e86a77f12555cc39
+44 verbose addTmpTarball C:\Users\Jori\AppData\Local\Temp\npm-3852-d5f01a05\registry.npmjs.org\node_dtls\-\node_dtls-0.0.2.tgz not in flight; adding
+45 verbose addTmpTarball already have metadata; skipping unpack for node_dtls@0.0.2
+46 silly cache afterAdd node_dtls@0.0.2
+47 verbose afterAdd C:\Users\Jori\AppData\Roaming\npm-cache\node_dtls\0.0.2\package\package.json not in flight; writing
+48 verbose afterAdd C:\Users\Jori\AppData\Roaming\npm-cache\node_dtls\0.0.2\package\package.json written
+49 silly install resolved [ { name: 'node_dtls',
+49 silly install resolved     version: '0.0.2',
+49 silly install resolved     description: 'Datagram Transport Layer Security',
+49 silly install resolved     main: 'index.js',
+49 silly install resolved     repository: '',
+49 silly install resolved     keywords: [ 'dtls' ],
+49 silly install resolved     author: { name: 'Sayyad Gaffar', email: 'sgaffar@kodiaknetworks.com' },
+49 silly install resolved     contributors: [ [Object], [Object], [Object], [Object] ],
+49 silly install resolved     license: 'BSD',
+49 silly install resolved     readmeFilename: 'README.md',
+49 silly install resolved     scripts: { preinstall: 'node-gyp configure build' },
+49 silly install resolved     readme: 'Steps to use the DTLS library on node.js\n\n****Important******: Copy the libopenssl.a library from node deps folder to /usr/lib/\n\nSupported OS: Linux.\nAuthor: Sayyad Gaffar.\nNode Version: >= 0.6.0\nInstalltion: npm i node_dtls\n\nTo test DTLS on Node:\n\na) DTLS macros needs to be disabled on openssl configuration file.\n\t1) Comment out the macro:\n \n\t\t\t#\'OPENSSL_NO_DTLS1\',\n        \t\t#\'OPENSSL_NO_SOCK\',\n        \t\t#\'OPENSSL_NO_DGRAM\',\n\t\t\t\t\n\t\t\tin openssl.gyp  Path: /node directory/deps/openssl/openssl.gyp\n\t\nb) Make the changes in openssl as mentioned in the below patch:\n\n\t\t\thttp://cvs.openssl.org/filediff?f=openssl/ssl/s3_pkt.c&v1=1.72.2.7.2.11&v2=1.72.2.7.2.12 \n\nc) Recompile node with the above settings.\n\t\t\ta) ./configure.\n\t\t\tb) make\n\t\t\tc) make install\n\nd) Testing the dtls on node\n\n\t\ta) In the node_modules folder, find dtls.\n\t\tb) Inside Demo, one will find the dtlsserver and dtlsclient.\n\t\tc) Run the dtls Server: dtls/demo/dtlsServer/dtlsController.js  \n\t\td) Connect using the dtls client: dtls/demo/dtlsClient.js\n\t\te) The certificate and key are generated using openssl to test the dtls client and server.\n\nTo run the Client Install the below modules.\n\na) bindings.\nb) microtime.\nc) log4js.\nd) nodeload.\n\n\nChanges in node_dtls 0.0.2:\n\ta) Dont require any openssl changes.\n\tb) Will Compile with latest node v0.10.12\n\t\n\n\n',
+49 silly install resolved     _id: 'node_dtls@0.0.2',
+49 silly install resolved     dist:
+49 silly install resolved      { shasum: '7383dbfd2a6f91c5a39647b3e86a77f12555cc39',
+49 silly install resolved        tarball: 'http://registry.npmjs.org/node_dtls/-/node_dtls-0.0.2.tgz' },
+49 silly install resolved     _from: 'node_dtls@*',
+49 silly install resolved     _npmVersion: '1.2.32',
+49 silly install resolved     _npmUser: { name: 'rajendra', email: 'krajendra@kodiaknetworks.com' },
+49 silly install resolved     maintainers: [ [Object] ],
+49 silly install resolved     directories: {},
+49 silly install resolved     _shasum: '7383dbfd2a6f91c5a39647b3e86a77f12555cc39',
+49 silly install resolved     _resolved: 'https://registry.npmjs.org/node_dtls/-/node_dtls-0.0.2.tgz' } ]
+50 info install node_dtls@0.0.2 into C:\Users\Jori\Documents\elliSiteController
+51 info installOne node_dtls@0.0.2
+52 verbose installOne of node_dtls to C:\Users\Jori\Documents\elliSiteController not in flight; installing
+53 verbose lock using C:\Users\Jori\AppData\Roaming\npm-cache\_locks\node-dtls-a3fd5548f2b19944.lock for C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls
+54 silly install write writing node_dtls 0.0.2 to C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls
+55 silly cache addNamed cb node_dtls@0.0.2
+56 verbose unbuild node_modules\node_dtls
+57 info preuninstall node_dtls@0.0.2
+58 info uninstall node_dtls@0.0.2
+59 verbose unbuild rmStuff node_dtls@0.0.2 from C:\Users\Jori\Documents\elliSiteController\node_modules
+60 info postuninstall node_dtls@0.0.2
+61 verbose gentlyRm vacuuming C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls
+62 silly gentlyRm purging C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls
+63 silly gentlyRm quitting because other entries in C:\Users\Jori\Documents\elliSiteController\node_modules
+64 verbose tar unpack C:\Users\Jori\AppData\Roaming\npm-cache\node_dtls\0.0.2\package.tgz
+65 verbose tar unpacking to C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls
+66 verbose gentlyRm vacuuming C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls
+67 silly gunzTarPerm modes [ '777', '666' ]
+68 silly gunzTarPerm extractEntry package.json
+69 silly gunzTarPerm modified mode [ 'package.json', 493, 511 ]
+70 silly gunzTarPerm extractEntry README.md
+71 silly gunzTarPerm modified mode [ 'README.md', 493, 511 ]
+72 silly gunzTarPerm extractEntry index.js
+73 silly gunzTarPerm modified mode [ 'index.js', 493, 511 ]
+74 silly gunzTarPerm extractEntry binding.gyp
+75 silly gunzTarPerm modified mode [ 'binding.gyp', 493, 511 ]
+76 silly gunzTarPerm extractEntry build/Makefile
+77 silly gunzTarPerm modified mode [ 'build/Makefile', 420, 438 ]
+78 silly gunzTarPerm extractEntry build/Release/.deps/Release/node_dtls.node.d
+79 silly gunzTarPerm modified mode [ 'build/Release/.deps/Release/node_dtls.node.d', 420, 438 ]
+80 silly gunzTarPerm extractEntry build/Release/.deps/Release/obj.target/node_dtls/src/node_dtls.o.d
+81 silly gunzTarPerm modified mode [ 'build/Release/.deps/Release/obj.target/node_dtls/src/node_dtls.o.d',
+81 silly gunzTarPerm   420,
+81 silly gunzTarPerm   438 ]
+82 silly gunzTarPerm extractEntry build/Release/.deps/Release/obj.target/node_dtls.node.d
+83 silly gunzTarPerm modified mode [ 'build/Release/.deps/Release/obj.target/node_dtls.node.d',
+83 silly gunzTarPerm   420,
+83 silly gunzTarPerm   438 ]
+84 silly gunzTarPerm extractEntry build/Release/linker.lock
+85 silly gunzTarPerm modified mode [ 'build/Release/linker.lock', 420, 438 ]
+86 silly gunzTarPerm extractEntry build/Release/node_dtls.node
+87 silly gunzTarPerm modified mode [ 'build/Release/node_dtls.node', 493, 511 ]
+88 silly gunzTarPerm extractEntry build/Release/obj.target/node_dtls/src/node_dtls.o
+89 silly gunzTarPerm modified mode [ 'build/Release/obj.target/node_dtls/src/node_dtls.o',
+89 silly gunzTarPerm   420,
+89 silly gunzTarPerm   438 ]
+90 silly gunzTarPerm extractEntry build/Release/obj.target/node_dtls.node
+91 silly gunzTarPerm modified mode [ 'build/Release/obj.target/node_dtls.node', 493, 511 ]
+92 silly gunzTarPerm extractEntry build/binding.Makefile
+93 silly gunzTarPerm modified mode [ 'build/binding.Makefile', 420, 438 ]
+94 silly gunzTarPerm extractEntry build/config.gypi
+95 silly gunzTarPerm modified mode [ 'build/config.gypi', 420, 438 ]
+96 silly gunzTarPerm extractEntry build/node_dtls.target.mk
+97 silly gunzTarPerm modified mode [ 'build/node_dtls.target.mk', 420, 438 ]
+98 silly gunzTarPerm extractEntry demo/dtlsClient.js
+99 silly gunzTarPerm modified mode [ 'demo/dtlsClient.js', 420, 438 ]
+100 silly gunzTarPerm extractEntry demo/dtlsServer/Utils.js
+101 silly gunzTarPerm modified mode [ 'demo/dtlsServer/Utils.js', 493, 511 ]
+102 silly gunzTarPerm extractEntry demo/dtlsServer/dtlsController.js
+103 silly gunzTarPerm modified mode [ 'demo/dtlsServer/dtlsController.js', 493, 511 ]
+104 silly gunzTarPerm extractEntry demo/dtlsServer/log-rolling.js
+105 silly gunzTarPerm modified mode [ 'demo/dtlsServer/log-rolling.js', 493, 511 ]
+106 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/.name
+107 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/.name', 493, 511 ]
+108 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/encodings.xml
+109 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/encodings.xml', 493, 511 ]
+110 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/misc.xml
+111 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/misc.xml', 493, 511 ]
+112 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/modules.xml
+113 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/modules.xml', 493, 511 ]
+114 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/scopes/scope_settings.xml
+115 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/scopes/scope_settings.xml', 493, 511 ]
+116 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/tlsServer.iml
+117 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/tlsServer.iml', 493, 511 ]
+118 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/vcs.xml
+119 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/vcs.xml', 493, 511 ]
+120 silly gunzTarPerm extractEntry demo/dtlsServer/.idea/workspace.xml
+121 silly gunzTarPerm modified mode [ 'demo/dtlsServer/.idea/workspace.xml', 493, 511 ]
+122 silly gunzTarPerm extractEntry demo/dtlsServer/dtls/dtlsServer.js
+123 silly gunzTarPerm modified mode [ 'demo/dtlsServer/dtls/dtlsServer.js', 493, 511 ]
+124 silly gunzTarPerm extractEntry demo/dtlsServer/dtls/key/private-key.pem
+125 silly gunzTarPerm modified mode [ 'demo/dtlsServer/dtls/key/private-key.pem', 420, 438 ]
+126 silly gunzTarPerm extractEntry demo/dtlsServer/dtls/key/public-cert.pem
+127 silly gunzTarPerm modified mode [ 'demo/dtlsServer/dtls/key/public-cert.pem', 420, 438 ]
+128 silly gunzTarPerm extractEntry demo/public-cert.pem
+129 silly gunzTarPerm modified mode [ 'demo/public-cert.pem', 420, 438 ]
+130 silly gunzTarPerm extractEntry demo/results-2013-07-04T07:17:17.309Z.html
+131 silly gunzTarPerm modified mode [ 'demo/results-2013-07-04T07:17:17.309Z.html', 420, 438 ]
+132 silly gunzTarPerm extractEntry demo/tcp_fourth.log
+133 silly gunzTarPerm modified mode [ 'demo/tcp_fourth.log', 420, 438 ]
+134 silly gunzTarPerm extractEntry lib/dtls_crypto.js
+135 silly gunzTarPerm modified mode [ 'lib/dtls_crypto.js', 420, 438 ]
+136 silly gunzTarPerm extractEntry lib/node_dtls.js
+137 silly gunzTarPerm modified mode [ 'lib/node_dtls.js', 420, 438 ]
+138 silly gunzTarPerm extractEntry src/node_dtls.cc
+139 silly gunzTarPerm modified mode [ 'src/node_dtls.cc', 420, 438 ]
+140 silly gunzTarPerm extractEntry src/node_dtls.h
+141 silly gunzTarPerm modified mode [ 'src/node_dtls.h', 420, 438 ]
+142 silly gunzTarPerm extractEntry src/node_dtls_groups.h
+143 silly gunzTarPerm modified mode [ 'src/node_dtls_groups.h', 420, 438 ]
+144 silly gunzTarPerm extractEntry src/node_dtls_root_certs.h
+145 silly gunzTarPerm modified mode [ 'src/node_dtls_root_certs.h', 420, 438 ]
+146 silly gunzTarPerm extractEntry test
+147 silly gunzTarPerm modified mode [ 'test', 420, 438 ]
+148 verbose stack Error: ENOENT, open 'C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls\demo\results-2013-07-04T07:17:17.309Z.html'
+148 verbose stack     at Error (native)
+149 verbose cwd C:\Users\Jori\Documents\elliSiteController\dtlsCoapClient
+150 error Windows_NT 6.1.7601
+151 error argv "C:\\Program Files (x86)\\nodejs\\\\node.exe" "C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "install" "node_dtls"
+152 error node v0.12.0
+153 error npm  v2.5.1
+154 error path C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls\demo\results-2013-07-04T07:17:17.309Z.html
+155 error code ENOENT
+156 error errno -4058
+157 error enoent ENOENT, open 'C:\Users\Jori\Documents\elliSiteController\node_modules\node_dtls\demo\results-2013-07-04T07:17:17.309Z.html'
+157 error enoent This is most likely not a problem with npm itself
+157 error enoent and is related to npm not being able to find a file.
+158 verbose exit [ -4058, true ]
