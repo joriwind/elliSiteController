@@ -107,12 +107,16 @@ httpClient.prototype.insertNode = function (jsonObject, callback){
          }
     }, function(response) {
         response.setEncoding('utf8');
-        //console.log("Post data: " + post_data);
-        response.on('readable', function(){
-           var jsonObject = undefined;
-           var result = undefined;
-           if(!(result = response.read())){
-               jsonObject = JSON.parse(result);
+        
+        // Continuously update stream with data
+        var body = '';
+        response.on('data', function(d) {
+            body += d;
+        });
+        response.on('end', function() {
+           var jsonObject;
+           if(body){
+               jsonObject = JSON.parse(body);
            }
            callback(jsonObject);
         });
@@ -143,8 +147,8 @@ httpClient.prototype.insertSiteController = function (jsonObject, callback){
         response.setEncoding('utf8');
         //console.log("Post data: " + post_data);
         response.on('readable', function(){
-           var jsonObject = undefined;
-           var result = undefined;
+           var jsonObject;
+           var result;
            if(!(result = response.read())){
                jsonObject = JSON.parse(result);
            }
@@ -167,17 +171,18 @@ var client = new httpClient(function(){
       console.log("For id= 44 I got: " + JSON.stringify(object));
    });
    */
-   /*
-   var node = {id:"5", pk:"b", "idSC":"1"};
-   client.insertNode(node,function (object){
-      console.log("For the post: " + object + " JSON: " + JSON.stringify(node));
-   });*/
    
+   var node = {id:"6", pk:"C", "idSC":"5"};
+   client.insertNode(node,function (object){
+      console.log("Response of POST node: " + JSON.stringify(object) );
+   });
+   
+   /*
    var siteController = {id:"6"};
    
    client.insertSiteController(siteController,function (object){
-      console.log("For the post: " + object + " JSON: " + JSON.stringify(siteController));
-   });
+      console.log("Response of POST siteController: " + JSON.stringify(object) );
+   });*/
 });
 
 
