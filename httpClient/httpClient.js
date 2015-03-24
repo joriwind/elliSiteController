@@ -1,8 +1,8 @@
 var socks = require('socksv5');
 var Client = require('ssh2').Client;
 var http = require('http');
-var querystring = require('querystring');
 
+/** Configuration and setup of socks over ssh**/
 
 var ssh_config = {
   host: '127.0.0.1',
@@ -54,12 +54,18 @@ var SocksServer = function (callback){
 
 
 
-
-var httpClient = function(callback){
+/** HttpClient classe with all the functions to talk with server over ssh and socks**/
+/**
+ * Constructor
+**/
+var HttpClient = function(callback){
+   //Sets up the connection with the server
    this.socksServer = new SocksServer(callback);
 }
 
-httpClient.prototype.getNodes = function (callback){
+/** Functions for node **/
+//Get all the Nodes!
+HttpClient.prototype.getNodes = function (callback){
    return http.get({
         host: 'localhost',
         port: 1080,
@@ -74,10 +80,11 @@ httpClient.prototype.getNodes = function (callback){
     });
 }
 
-httpClient.prototype.getNode = function (id, callback){
+//Get a specific Node based upon id of the node
+HttpClient.prototype.getNode = function (id, callback){
    return http.get({
         host: 'localhost',
-        port: '1080',
+        port: 1080,
         path: '/api/nodes/' + id,
         agent: new socks.HttpAgent(socksConfig)
     }, function(response) {
@@ -89,13 +96,14 @@ httpClient.prototype.getNode = function (id, callback){
     });
 }
 
-httpClient.prototype.insertNode = function (jsonObject, callback){
+//Insert an Node into the server's database
+HttpClient.prototype.insertNode = function (jsonObject, callback){
    
    var post_data = JSON.stringify({node:jsonObject});
    
    var post_req = http.request({
         host: 'localhost',
-        port: '1080',
+        port: 1080,
         path: '/api/nodes/',
         method: 'post',
         form: post_data,
@@ -127,13 +135,15 @@ httpClient.prototype.insertNode = function (jsonObject, callback){
     
 }
 
-httpClient.prototype.insertSiteController = function (jsonObject, callback){
+/** Functions for siteController **/
+//Insert an Site Controller into the server's database
+HttpClient.prototype.insertSiteController = function (jsonObject, callback){
    
    var post_data = JSON.stringify({siteController:jsonObject});
    
    var post_req = http.request({
         host: 'localhost',
-        port: '1080',
+        port: 1080,
         path: '/api/sitecontrollers/',
         method: 'post',
         form: post_data,
@@ -161,7 +171,9 @@ httpClient.prototype.insertSiteController = function (jsonObject, callback){
     
 }
 
-var client = new httpClient(function(){
+
+/** Testing purposes **/
+var client = new HttpClient(function(){
    /*
    client.getNodes(function (object){
       console.log("All the nodes of the db: " + JSON.stringify(object));
@@ -185,5 +197,5 @@ var client = new httpClient(function(){
    });*/
 });
 
-
-module.exports = httpClient;
+/**Exports**/
+module.exports = HttpClient;
