@@ -1,6 +1,8 @@
 var shttp = require('socks5-http-client');
 var socks = require('socksv5');
 var Client = require('ssh2').Client;
+var querystring = require('querystring');
+
 /*
 var conn = new Client();
 conn.on('ready', function(){
@@ -74,29 +76,61 @@ var httpClient = function(){}
 httpClient.prototype.getNodes = function (callback){
    return shttp.get({
         host: 'localhost',
-        path: '/api/nodes'
+        path: '/api/nodes/'
     }, function(response) {
         response.setEncoding('utf8');
         response.on('readable', function(){
-           console.log(res.read());
+           var jsonObject = JSON.parse(response.read());
+           callback(jsonObject);
         });
-        /*// Continuously update stream with data
-        var body = '';
-        response.on('data', function(d) {
-            body += d;
-        });
-        response.on('end', function() {
-
-            // Data reception is done, do whatever with it!
-            var parsed = JSON.parse(body);
-            callback(parsed);
-        });*/
     });
+}
+
+httpClient.prototype.getNode = function (id, callback){
+   return shttp.get({
+        host: 'localhost',
+        path: '/api/nodes/' + id
+    }, function(response) {
+        response.setEncoding('utf8');
+        response.on('readable', function(){
+           var jsonObject = JSON.parse(response.read());
+           callback(jsonObject);
+        });
+    });
+}
+
+httpClient.prototype.setNode = function (jsonObject, callback){
+   var post_data = querystring.stringify({'node':jsonObject});
+   
+   var post_req = shttp.get({
+        host: 'localhost',
+        path: '/api/nodes/',
+        method: 'post',
+        form: post_data
+    }, function(response) {
+        response.setEncoding('utf8');
+        response.on('readable', function(){
+           var jsonObject = JSON.parse(response.read());
+           callback(jsonObject);
+        });
+    });
+    //post_req.write(post_data);
+    
 }
 
 var client = new httpClient();
 client.getNodes(function (object){
-   console.log(object);
+   console.log("All the nodes of the db: " + object);
+});
+
+client.getNode(44,function (object){
+   console.log("For id= 44 I got: " + object);
+});
+
+var jsonObject = {id:"5", pk:"b", idSC:"2"}
+
+client.setNode(JSON.stringify(jsonObject),function (object){
+   console.log("For the post: " + object);
 });
 
 module.exports = httpClient;
