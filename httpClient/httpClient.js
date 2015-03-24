@@ -1,6 +1,6 @@
-var shttp = require('socks5-http-client');
 var socks = require('socksv5');
 var Client = require('ssh2').Client;
+var http = require('http');
 var querystring = require('querystring');
 
 
@@ -11,59 +11,60 @@ var ssh_config = {
    privateKey: require('fs').readFileSync('id_rsa')
 };
 
-socks.createServer(function(info, accept, deny) {
-  // NOTE: you could just use one ssh2 client connection for all forwards, but
-  // you could run into server-imposed limits if you have too many forwards open
-  // at any given time
-  var conn = new Client();
-  conn.on('ready', function() {
-    conn.forwardOut('localhost',
-                    9000,
-                    '127.0.0.1',
-                    8000,
-                    function(err, stream) {
-      if (err) {
-        conn.end();
-        return deny();
-      }
+var socksConfig = {
+  proxyHost: 'localhost',
+  proxyPort: 1080,
+  auths: [ socks.auth.None() ]
+};
 
-      var clientSocket;
-      if (clientSocket = accept(true)) {
-        stream.pipe(clientSocket).pipe(stream).on('close', function() {
-          conn.end();
-        });
-        
-      } else
-        conn.end();
-    });
-  }).on('error', function(err) {
-    deny();
-  }).connect(ssh_config);
-}).listen(1080, 'localhost', function() {
-  console.log('SOCKSv5 proxy server started on port 1080');
-  
-  var client = new httpClient();
-   client.getNodes(function (object){
-      console.log("All the nodes of the db: " + JSON.stringify(object));
-   });
+var SocksServer = function (callback){
+   return socks.createServer(function(info, accept, deny) {
+     // NOTE: you could just use one ssh2 client connection for all forwards, but
+     // you could run into server-imposed limits if you have too many forwards open
+     // at any given time
+     var conn = new Client();
+     conn.on('ready', function() {
+       conn.forwardOut('localhost',
+                       9000,
+                       '127.0.0.1',
+                       8000,
+                       function(err, stream) {
+         if (err) {
+           conn.end();
+           return deny();
+         }
 
-   client.getNode(44,function (object){
-      console.log("For id= 44 I got: " + JSON.stringify(object));
-   });
+         var clientSocket;
+         if (clientSocket = accept(true)) {
+           stream.pipe(clientSocket).pipe(stream).on('close', function() {
+             conn.end();
+           });
+           
+         } else
+           conn.end();
+       });
+     }).on('error', function(err) {
+       deny();
+     }).connect(ssh_config);
+   }).listen(1080, 'localhost', function() {
+     console.log('SOCKSv5 proxy server started on port 1080');
+     callback();
+   }).useAuth(socks.auth.None());
+}
 
-   var jsonObject = {id:"5", pk:"b", idSC:"2"};
 
-   client.setNode(jsonObject,function (object){
-      console.log("For the post: " + object);
-   });
-}).useAuth(socks.auth.None());
 
-var httpClient = function(){}
+
+var httpClient = function(callback){
+   this.socksServer = new SocksServer(callback);
+}
 
 httpClient.prototype.getNodes = function (callback){
-   return shttp.get({
+   return http.get({
         host: 'localhost',
-        path: '/api/nodes/'
+        port: 1080,
+        path: '/api/nodes/',
+        agent: new socks.HttpAgent(socksConfig)
     }, function(response) {
         response.setEncoding('utf8');
         response.on('readable', function(){
@@ -74,9 +75,11 @@ httpClient.prototype.getNodes = function (callback){
 }
 
 httpClient.prototype.getNode = function (id, callback){
-   return shttp.get({
+   return http.get({
         host: 'localhost',
-        path: '/api/nodes/' + id
+        port: '1080',
+        path: '/api/nodes/' + id,
+        agent: new socks.HttpAgent(socksConfig)
     }, function(response) {
         response.setEncoding('utf8');
         response.on('readable', function(){
@@ -86,29 +89,22 @@ httpClient.prototype.getNode = function (id, callback){
     });
 }
 
-httpClient.prototype.setNode = function (jsonObject, callback){
-   /*var post_data = querystring.stringify({node:jsonObject});*/
-   /*
-   var post_data = querystring.stringify({
-      'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
-      'output_format': 'json',
-      'output_info': 'compiled_code',
-        'warning_level' : 'QUIET',
-        'js_code' : jsonObject
-  });*/
-   //var post_data = querystring.stringify({node:jsonObject});
-   var post_data = querystring.stringify(jsonObject);
-   //console.log("Post data: " + post_data);
-   var post_req = shttp.get({
+httpClient.prototype.insertNode = function (jsonObject, callback){
+   
+   var post_data = JSON.stringify({node:jsonObject});
+   
+   var post_req = http.request({
         host: 'localhost',
+        port: '1080',
         path: '/api/nodes/',
         method: 'post',
-        form: post_data/*,
+        form: post_data,
+        agent: new socks.HttpAgent(socksConfig),
         headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         'Content-Length': post_data.length,
         'node': post_data
-         }*/
+         }
     }, function(response) {
         response.setEncoding('utf8');
         //console.log("Post data: " + post_data);
@@ -121,23 +117,68 @@ httpClient.prototype.setNode = function (jsonObject, callback){
            callback(jsonObject);
         });
     });
-    //post_req.write(post_data);
+    
+    post_req.write(post_data);
+    post_req.end();
     
 }
-/*
-var client = new httpClient();
-client.getNodes(function (object){
-   console.log("All the nodes of the db: " + JSON.stringify(object));
+
+httpClient.prototype.insertSiteController = function (jsonObject, callback){
+   
+   var post_data = JSON.stringify({siteController:jsonObject});
+   
+   var post_req = http.request({
+        host: 'localhost',
+        port: '1080',
+        path: '/api/sitecontrollers/',
+        method: 'post',
+        form: post_data,
+        agent: new socks.HttpAgent(socksConfig),
+        headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': post_data.length,
+        'node': post_data
+         }
+    }, function(response) {
+        response.setEncoding('utf8');
+        //console.log("Post data: " + post_data);
+        response.on('readable', function(){
+           var jsonObject = undefined;
+           var result = undefined;
+           if(!(result = response.read())){
+               jsonObject = JSON.parse(result);
+           }
+           callback(jsonObject);
+        });
+    });
+    
+    post_req.write(post_data);
+    post_req.end();
+    
+}
+
+var client = new httpClient(function(){
+   /*
+   client.getNodes(function (object){
+      console.log("All the nodes of the db: " + JSON.stringify(object));
+   });
+
+   client.getNode(44,function (object){
+      console.log("For id= 44 I got: " + JSON.stringify(object));
+   });
+   */
+   /*
+   var node = {id:"5", pk:"b", "idSC":"1"};
+   client.insertNode(node,function (object){
+      console.log("For the post: " + object + " JSON: " + JSON.stringify(node));
+   });*/
+   
+   var siteController = {id:"6"};
+   
+   client.insertSiteController(siteController,function (object){
+      console.log("For the post: " + object + " JSON: " + JSON.stringify(siteController));
+   });
 });
 
-client.getNode(44,function (object){
-   console.log("For id= 44 I got: " + JSON.stringify(object));
-});
-
-var jsonObject = {node: {id:"5", pk:"b", idSC:"2"}};
-
-client.setNode(jsonObject,function (object){
-   console.log("For the post: " + object);
-});*/
 
 module.exports = httpClient;
