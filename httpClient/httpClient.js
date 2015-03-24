@@ -3,35 +3,6 @@ var socks = require('socksv5');
 var Client = require('ssh2').Client;
 var querystring = require('querystring');
 
-/*
-var conn = new Client();
-conn.on('ready', function(){
-   console.log('Client :: ready');
-   conn.forwardOut('localhost', 9000, '127.0.0.1',8000, function (err, stream){
-      if (err) throw err;
-      
-      /*stream.on('close', function() {
-         console.log('TCP :: CLOSED');
-         conn.end();
-      }).on('data', function(data) {
-         console.log('TCP :: DATA: ' + data);
-      }).end([
-         'HEAD / HTTP/1.1',
-         'User-Agent: curl/7.27.0',
-         'Host: 127.0.0.1',
-         'Accept: *//*', //delete /
-         //'Connection: close',
-         '',
-         ''
-      ].join('\r\n'));
-   });
-   
-}).connect({
-   host: '127.0.0.1',
-   port: 2222,
-   username: 'vagrant',
-   privateKey: require('fs').readFileSync('id_rsa')
-});*/
 
 var ssh_config = {
   host: '127.0.0.1',
@@ -61,6 +32,7 @@ socks.createServer(function(info, accept, deny) {
         stream.pipe(clientSocket).pipe(stream).on('close', function() {
           conn.end();
         });
+        
       } else
         conn.end();
     });
@@ -69,6 +41,21 @@ socks.createServer(function(info, accept, deny) {
   }).connect(ssh_config);
 }).listen(1080, 'localhost', function() {
   console.log('SOCKSv5 proxy server started on port 1080');
+  
+  var client = new httpClient();
+   client.getNodes(function (object){
+      console.log("All the nodes of the db: " + JSON.stringify(object));
+   });
+
+   client.getNode(44,function (object){
+      console.log("For id= 44 I got: " + JSON.stringify(object));
+   });
+
+   var jsonObject = {id:"5", pk:"b", idSC:"2"};
+
+   client.setNode(jsonObject,function (object){
+      console.log("For the post: " + object);
+   });
 }).useAuth(socks.auth.None());
 
 var httpClient = function(){}
@@ -100,37 +87,57 @@ httpClient.prototype.getNode = function (id, callback){
 }
 
 httpClient.prototype.setNode = function (jsonObject, callback){
-   var post_data = querystring.stringify({'node':jsonObject});
-   
+   /*var post_data = querystring.stringify({node:jsonObject});*/
+   /*
+   var post_data = querystring.stringify({
+      'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
+      'output_format': 'json',
+      'output_info': 'compiled_code',
+        'warning_level' : 'QUIET',
+        'js_code' : jsonObject
+  });*/
+   //var post_data = querystring.stringify({node:jsonObject});
+   var post_data = querystring.stringify(jsonObject);
+   //console.log("Post data: " + post_data);
    var post_req = shttp.get({
         host: 'localhost',
         path: '/api/nodes/',
         method: 'post',
-        form: post_data
+        form: post_data/*,
+        headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': post_data.length,
+        'node': post_data
+         }*/
     }, function(response) {
         response.setEncoding('utf8');
+        //console.log("Post data: " + post_data);
         response.on('readable', function(){
-           var jsonObject = JSON.parse(response.read());
+           var jsonObject = undefined;
+           var result = undefined;
+           if(!(result = response.read())){
+               jsonObject = JSON.parse(result);
+           }
            callback(jsonObject);
         });
     });
     //post_req.write(post_data);
     
 }
-
+/*
 var client = new httpClient();
 client.getNodes(function (object){
-   console.log("All the nodes of the db: " + object);
+   console.log("All the nodes of the db: " + JSON.stringify(object));
 });
 
 client.getNode(44,function (object){
-   console.log("For id= 44 I got: " + object);
+   console.log("For id= 44 I got: " + JSON.stringify(object));
 });
 
-var jsonObject = {id:"5", pk:"b", idSC:"2"}
+var jsonObject = {node: {id:"5", pk:"b", idSC:"2"}};
 
-client.setNode(JSON.stringify(jsonObject),function (object){
+client.setNode(jsonObject,function (object){
    console.log("For the post: " + object);
-});
+});*/
 
 module.exports = httpClient;
