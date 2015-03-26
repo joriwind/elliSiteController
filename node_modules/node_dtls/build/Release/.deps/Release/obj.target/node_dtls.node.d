@@ -1,1 +1,0 @@
-cmd_Release/obj.target/node_dtls.node := flock ./Release/linker.lock g++ -shared -pthread -rdynamic -m32  -Wl,-soname=node_dtls.node -o Release/obj.target/node_dtls.node -Wl,--start-group Release/obj.target/node_dtls/src/node_dtls.o -Wl,--end-group -L/usr/lib -lopenssl
