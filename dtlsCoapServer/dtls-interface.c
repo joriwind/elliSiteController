@@ -43,24 +43,27 @@ static int cleanup;                 /* To handle shutdown */
 struct sockaddr_in servAddr;        /* our server's address */
 struct sockaddr_in cliaddr;         /* the client's address */
 
-int AwaitDGram(CYASSL_CTX* ctx);   /* Separate out Handling Datagrams */
+CYASSL* AwaitDGram(CYASSL_CTX* ctx);   /* Separate out Handling Datagrams */
+char listenDTLS(CYASSL* ssl, char buffer[MSGLEN]);
+int writeDTLS(CYASSL* ssl, char message[]);
+CYASSL_CTX* init(int argc, char** argv);
+void closeDTLS(CYASSL* ssl);
 void CleanUp();
 
-int AwaitDGram(CYASSL_CTX* ctx)
+
+
+CYASSL* AwaitDGram(CYASSL_CTX* ctx)
 {
     int           on = 1;
     int           res = 1; 
     int           connfd = 0;  
-    int           recvLen = 0;    /* length of message */
     int           listenfd = 0;   /* Initialize our socket */
     CYASSL*       ssl = NULL;
     socklen_t     cliLen;
     socklen_t     len = sizeof(on);
     unsigned char b[MSGLEN];      /* watch for incoming messages */
-    char          buff[MSGLEN];   /* the incoming message */
-    char          ack[] = "I hear you fashizzle!\n";
 
-    while (cleanup != 1) {
+    //while (cleanup != 1) {
         /* Create a UDP/IP socket */
         if ((listenfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
             printf("Cannot create socket.\n");
@@ -82,7 +85,7 @@ int AwaitDGram(CYASSL_CTX* ctx)
         if (res < 0) {
             printf("Setsockopt SO_REUSEADDR failed.\n");
             cleanup = 1;
-            return 1;
+            return NULL;
         }
 
         /*Bind Socket*/
@@ -90,7 +93,7 @@ int AwaitDGram(CYASSL_CTX* ctx)
                     (struct sockaddr *)&servAddr, sizeof(servAddr)) < 0) {
             printf("Bind failed.\n");
             cleanup = 1;
-            return 1;
+            return NULL;
         }
 
         printf("Awaiting client connection on port %d\n", SERV_PORT);
@@ -101,20 +104,21 @@ int AwaitDGram(CYASSL_CTX* ctx)
 
         if (connfd < 0) {
             printf("No clients in que, enter idle state\n");
-            continue;
+            //continue;
+            return NULL;
         }
         else if (connfd > 0) {
             if (connect(listenfd, (const struct sockaddr *)&cliaddr, 
                         sizeof(cliaddr)) != 0) {
                 printf("Udp connect failed.\n");
                 cleanup = 1;
-                return 1;
+                return NULL;
             }
         }
         else {
             printf("Recvfrom failed.\n");
             cleanup = 1;
-            return 1;
+            return NULL;
         }
         printf("Connected!\n");
 
@@ -122,7 +126,7 @@ int AwaitDGram(CYASSL_CTX* ctx)
         if ((ssl = CyaSSL_new(ctx)) == NULL) {
             printf("CyaSSL_new error.\n");
             cleanup = 1;
-            return 1;
+            return NULL;
         }
         
         /* set the session ssl to client connection port */
@@ -134,53 +138,73 @@ int AwaitDGram(CYASSL_CTX* ctx)
 
             printf("error = %d, %s\n", e, CyaSSL_ERR_reason_error_string(e));
             printf("SSL_accept failed.\n");
-            continue;
+            //continue;
+            return NULL;
         }
-        if ((recvLen = CyaSSL_read(ssl, buff, sizeof(buff)-1)) > 0) {
-            printf("heard %d bytes\n", recvLen);
-
-            buff[recvLen] = 0;
-            printf("I heard this: \"%s\"\n", buff);
-        }
-        else if (recvLen < 0) {
-            int readErr = CyaSSL_get_error(ssl, 0);
-            if(readErr != SSL_ERROR_WANT_READ) {
-                printf("SSL_read failed.\n");
-                cleanup = 1;
-                return 1;
-            }
-        }
-        if (CyaSSL_write(ssl, ack, sizeof(ack)) < 0) {
-            printf("CyaSSL_write fail.\n");
-            cleanup = 1;
-            return 1;
-        } 
-        else {
-            printf("Sending reply.\n");
-        }
-
-        printf("reply sent \"%s\"\n", ack);
-
-        CyaSSL_set_fd(ssl, 0); 
-        CyaSSL_shutdown(ssl);        
-        CyaSSL_free(ssl);
-
-        printf("Client left return to idle state\n");
-    }
-    return 0;
+        return ssl;
+    //}
+    return NULL;
 }
 
-int main(int argc, char** argv)
+//, int(*giveData) (char buffer[MSGLEN])
+char listenDTLS(CYASSL* ssl, char buffer[MSGLEN]){
+   int           recvLen = 0;    /* length of message */
+   char          buff[MSGLEN];   /* the incoming message */
+   if ((recvLen = CyaSSL_read(ssl, buff, sizeof(buff)-1)) > 0) {
+      printf("heard %d bytes\n", recvLen);
+
+      buff[recvLen] = 0;
+      printf("I heard this: \"%s\"\n", buff);
+      //giveData(buff);
+      buffer = buff;
+      return buff;
+   }
+   else if (recvLen < 0) {
+      int readErr = CyaSSL_get_error(ssl, 0);
+      if(readErr != SSL_ERROR_WANT_READ) {
+          printf("SSL_read failed.\n");
+          cleanup = 1;
+          return NULL;
+      }
+   }
+   return NULL;
+        
+}
+
+int writeDTLS(CYASSL* ssl, char message[MSGLEN]){
+   //char  ack[] = "I hear you fashizzle!\n";
+   if (CyaSSL_write(ssl, message, MSGLEN) < 0) {
+      printf("CyaSSL_write fail.\n");
+      cleanup = 1;
+      return 1;
+   } 
+   else {
+      printf("Sending reply.\n");
+   }
+
+   printf("reply sent \"%s\"\n", message);
+   return NULL;
+}
+
+void closeDTLS(CYASSL* ssl){
+   CyaSSL_set_fd(ssl, 0); 
+   CyaSSL_shutdown(ssl);        
+   CyaSSL_free(ssl);
+
+   printf("Client left return to idle state\n");
+}
+
+CYASSL_CTX* init(int argc, char** argv)
 {
     /* cont short for "continue?", Loc short for "location" */    
-    int         cont = 0;
+    //int         cont = 0;
     char        caCertLoc[] = "../certs/ca-cert.pem";
     char        servCertLoc[] = "../certs/server-cert.pem";
     char        servKeyLoc[] = "../certs/server-key.pem";
     CYASSL_CTX* ctx;
     
     /* "./config --enable-debug" and uncomment next line for debugging */
-    /* CyaSSL_Debugging_ON(); */
+    CyaSSL_Debugging_ON();
 
     /* Initialize CyaSSL */
     CyaSSL_Init();
@@ -188,33 +212,65 @@ int main(int argc, char** argv)
     /* Set ctx to DTLS 1.2 */
     if ((ctx = CyaSSL_CTX_new(CyaDTLSv1_2_server_method())) == NULL) {
         printf("CyaSSL_CTX_new error.\n");
-        return 1;
+        return NULL;
     }
     /* Load CA certificates */
     if (CyaSSL_CTX_load_verify_locations(ctx,caCertLoc,0) != 
             SSL_SUCCESS) {
         printf("Error loading %s, please check the file.\n", caCertLoc);
-        return 1;
+        return NULL;
     }
     /* Load server certificates */
     if (CyaSSL_CTX_use_certificate_file(ctx, servCertLoc, SSL_FILETYPE_PEM) != 
                                                                  SSL_SUCCESS) {
         printf("Error loading %s, please check the file.\n", servCertLoc);
-        return 1;
+        return NULL;
     }
     /* Load server Keys */
     if (CyaSSL_CTX_use_PrivateKey_file(ctx, servKeyLoc, 
                 SSL_FILETYPE_PEM) != SSL_SUCCESS) {
         printf("Error loading %s, please check the file.\n", servKeyLoc);
-        return 1;
+        return NULL;
     }
 
-    cont = AwaitDGram(ctx);
+    return ctx;
+}
 
+int main(int argc, char** argv){
+   
+   
+   char  ack[] = "I hear you fashizzle!\n";
+   int cont = 1;
+   CYASSL* ssl;
+   CYASSL_CTX* ctx;
+   char buff[MSGLEN];
+   
+   if((ctx = init(argc, argv))==NULL){
+      printf("Error in Init");
+      return 0;
+   }
+   
+   if((ssl = AwaitDGram(ctx))==NULL){
+         printf("Error in AwaitDGram");
+         return 0;
+      }
+   while(cleanup != 1){
+      
+      
+      
+      listenDTLS(ssl, buff);
+      if(writeDTLS(ssl,ack)==1){
+         printf("Error in write");
+         return 0;
+      }
+   }
+   
+   closeDTLS(ssl);
+   
     if (cont == 1) {
         CyaSSL_CTX_free(ctx);
         CyaSSL_Cleanup();
     }
-
-    return 0;
+   return 0;
 }
+
