@@ -57,6 +57,18 @@ dtls.prototype.write = function(message){
    dtls_interface.writeDTLS(this.CYASSL,message);
 }
 
+dtls.prototype.close = function(){
+   dtls_interface.closeDTLS(CYASSL);
+}
+
+dtls.prototype.send = function(message, number, msglen, port, address, ack){
+   write(message);
+   var err;
+   if(typeof ack === 'function'){
+      ack(err);
+   }
+}
+
 dtls.prototype.testRepeat = function(){
    var dtlsnew = new dtls();
    dtlsnew.createServer("", function(bool){
