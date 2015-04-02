@@ -1,7 +1,7 @@
 var ffi = require('ffi');
 var ref = require('ref');
 
-var dtls = function(){
+var Dtls = function(){
    
 }
 
@@ -23,7 +23,7 @@ var dtls_interface = ffi.Library('./dtls_interface', {
 });
 
 
-dtls.prototype.createServer = function(options, callback){
+Dtls.prototype.createServer = function(options, callback){
    /*dtls_interface.init.async(function(err,res){
       if(err) throw err;
       this.CYASSL_CTX = res;
@@ -33,7 +33,7 @@ dtls.prototype.createServer = function(options, callback){
    callback(true);
 }
 
-dtls.prototype.listenForNode = function(callback){
+Dtls.prototype.listenForNode = function(callback){
    /*dtls_interface.AwaitDGram.async(this.CYASSL_CTX, function(err, res){
       if(err) throw err;
       this.CYASSL = res;
@@ -43,7 +43,7 @@ dtls.prototype.listenForNode = function(callback){
    callback(true);
 }
 
-dtls.prototype.read = function(callback){
+Dtls.prototype.read = function(callback){
    var buffer = new Buffer(4096);
    buffer.type = ref.types.char;
    if(dtls_interface.listenDTLS(this.CYASSL, buffer) == 0){
@@ -53,34 +53,41 @@ dtls.prototype.read = function(callback){
    }
 }
 
-dtls.prototype.write = function(message){
+Dtls.prototype.write = function(message){
+   
    dtls_interface.writeDTLS(this.CYASSL,message);
 }
 
-dtls.prototype.close = function(){
+Dtls.prototype.close = function(){
    dtls_interface.closeDTLS(CYASSL);
 }
 
-dtls.prototype.send = function(message, number, msglen, port, address, ack){
-   write(message);
+Dtls.prototype.send = function(message, number, msglen, port, address, ack){
+   this.write(message);
    var err;
    if(typeof ack === 'function'){
       ack(err);
    }
 }
 
-dtls.prototype.testRepeat = function(){
-   var dtlsnew = new dtls();
+Dtls.prototype.testRepeat = function(){
+   var dtlsnew = new Dtls();
    dtlsnew.createServer("", function(bool){
       if(bool){
          dtlsnew.listenForNode(function(boolListen){
             
             dtlsnew.read(function(message){
-               dtlsnew.write(message);
+               
             });
+            dtlsnew.write(argument);
             
          });
       }
    });
 }
+
+var dtls = new Dtls();
+dtls.testRepeat();
+
+module.exports = Dtls;
 

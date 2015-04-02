@@ -7,7 +7,7 @@
  */
 
 var bl              = require('bl')
-  , dtls            = require('./dtls') //interface
+  , Dtls            = require('./Dtls') //interface
   , util            = require('util')
   , events          = require('events')
   , parse           = require('coap-packet').parse
@@ -32,28 +32,31 @@ function Agent(opts) {
 
    if (!opts)
       opts = {}
-   if (!opts.sock)
-      opts.sock = dtls.createServer("",function(bool){
+   /*
+   if (!this._sock)
+      dtls = new Dtls();
+      this._sock = dtls.createServer("",function(bool){
          return bool;
-      });
+      });*/
 
    if (!opts.type)
       opts.type = 'dtls4S'
 
    this._opts = opts
 
-   this._init()
 }
 
 util.inherits(Agent, events.EventEmitter)
 
-Agent.prototype._init = function initSock() {
+Agent.prototype._connect = function connectSock(callback) {
    if (this._sock)
       return
-   
-   this._sock = new dtls();
-   this._sock.createServer("",function(bool){
-         return bool;
+   var that = this;
+   this._sock = new Dtls();
+   this._sock.createServer("",function(initReady){
+         that._sock.listenForNode(function(ready){
+            callback(ready);
+         });
    });
 
    this._msgIdToReq = {}
@@ -86,6 +89,8 @@ Agent.prototype._listen = function(){
 
        //outSocket = that._sock.address();
        that._handle(msg, rsinfo, outSocket)
+       
+       
   });
 }
 
@@ -239,7 +244,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
 }
 
 Agent.prototype._nextToken = function nextToken() {
-  var buf = new Buffer(4)
+  var buf = new Buffer(4096)
 
   if (++this._lastToken === maxToken)
     this._lastToken = 0
@@ -257,7 +262,7 @@ Agent.prototype._nextMessageId = function nextToken() {
 }
 
 Agent.prototype.request = function request(url) {
-  this._init()
+  //this._init()
 
   var req
     , response
@@ -288,6 +293,8 @@ Agent.prototype.request = function request(url) {
     that._tkToReq[that._lastToken] = req
 
     req.sender.send(buf)
+    
+      //this._listen();
   })
 
   req.sender = new RetrySend(this._sock, url.port, url.hostname || url.host)
@@ -328,7 +335,7 @@ Agent.prototype.request = function request(url) {
   this._requests++
 
   req._totalPayload = new Buffer(0) 
-
+ 
   return req
 }
 
