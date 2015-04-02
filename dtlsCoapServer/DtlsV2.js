@@ -18,6 +18,7 @@ var dtls_interface = ffi.Library('./dtls_interfaceV2', {
   'initDTLS': [ 'pointer', [ ] ],
   'readDTLS': ['void',['pointer', 'pointer']],
   'writeDTLS': ['void',['pointer','string']],
+  'closeDTLS': ['void',[]]
   
 });
 
@@ -42,15 +43,18 @@ Dtls.prototype.createServer = function(options, callback){
 }
 
 Dtls.prototype.read = function(callback){
-   dtls_interface.readDTLS(this.CYASSL, ffi.Callback('void', [ref.refType(ref.types.char)], 
+   dtls_interface.readDTLS.async(this.CYASSL, ffi.Callback('void', [ref.refType(ref.types.char)], 
                             function (buffer) {  
       var message = buffer.readCString(buffer,0);
       console.log("bufRCS: " + message);
       //callback(message);
-      callback(message); //send back
+      var buff = new Buffer(message);
+      callback(buff); //send back buffer
       //dtlsnew.read();
       console.log("callback worked")
-   }));
+   }), function(err, res){
+      return;
+   });
    
 }
 
@@ -62,11 +66,27 @@ Dtls.prototype.write = function(message){
 
 
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
-   this.write(message);
-   var err;
+   console.log("Send message\n");
+   this.write(message.toString()); //message is of type: Buffer
+   var err = 0;
    if(typeof ack === 'function'){
       ack(err);
    }
+}
+
+Dtls.prototype.send = function(message, number, msglen, port, address){
+   console.log("Send message\n");
+   this.write(message.toString()); //message is of type: Buffer
+   
+}
+
+Dtls.prototype.address = function(){
+   //TODO: make this work
+   return 5;
+}
+
+Dtls.prototype.close = function(){
+   
 }
 
 Dtls.prototype.testRepeat = function(){
@@ -81,8 +101,8 @@ Dtls.prototype.testRepeat = function(){
    });
 }
 
-var dtls = new Dtls();
-dtls.testRepeat();
+//var dtls = new Dtls();
+//dtls.testRepeat();
 
 module.exports = Dtls;
 

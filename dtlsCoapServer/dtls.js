@@ -86,8 +86,8 @@ Dtls.prototype.testRepeat = function(){
    });
 }
 
-var dtls = new Dtls();
-dtls.testRepeat();
+//var dtls = new Dtls();
+//dtls.testRepeat();
 
 module.exports = Dtls;
 

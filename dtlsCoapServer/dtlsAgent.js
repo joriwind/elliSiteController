@@ -7,7 +7,7 @@
  */
 
 var bl              = require('bl')
-  , Dtls            = require('./Dtls') //interface
+  , Dtls            = require('./DtlsV2') //interface
   , util            = require('util')
   , events          = require('events')
   , parse           = require('coap-packet').parse
@@ -43,19 +43,57 @@ function Agent(opts) {
       opts.type = 'dtls4S'
 
    this._opts = opts
+   
+   this._init();
 
 }
 
 util.inherits(Agent, events.EventEmitter)
 
-Agent.prototype._connect = function connectSock(callback) {
-   if (this._sock)
-      return
+Agent.prototype._init = function connectSock(callback) {
+   if (this._sock){
+      return;
+   }
+   console.log("dtlsAgent: Init");
    var that = this;
    this._sock = new Dtls();
    this._sock.createServer("",function(initReady){
-         that._sock.listenForNode(function(ready){
-            callback(ready);
+         that._sock.read(function(msg){
+            console.log("Message received in Agent: " + msg+ "\n");
+               //that._sock.write("Hello testin after log!!");
+            var packet
+            , message
+            , outSocket;
+            var rsinfo = {};
+            try {
+               packet = parse(msg)
+             } catch(err) {
+                console.log("Error in parse message: " + err+ "\n");
+                try{
+                     message = generate({ code: '5.00', payload: new Buffer('Unable to parse packet') })
+                     console.log("Generated: 'Unable to parse packet' message: " + message+ "\n");
+                }catch(err){
+                  console.log("Error in generate message: " + err + "\n");
+                   
+                }
+                /*
+                console.log("Ready to send: " + message.toString('utf8'));
+                var buff = new Buffer(message.toString());
+                try{
+                   var newMsg = parse(buff);
+                }catch(err){
+                  console.log("Error in parse2 message: " + err);
+                }*/
+               
+               that._sock.send(message, 0, message.length,
+                               rsinfo.port, rsinfo.address)
+               
+               return
+             }
+               
+
+             outSocket = that._sock.address();
+             that._handle(msg, rsinfo, outSocket)
          });
    });
 
@@ -68,31 +106,9 @@ Agent.prototype._connect = function connectSock(callback) {
    this._closing = false
    this._msgInFlight = 0
    this._requests = 0
+   console.log("dtlsAgent: Init complete");
 }
 
-Agent.prototype._listen = function(){
-   var that = this;
-   
-   this._sock.read(function(msg){
-        var packet
-         , message
-         , outSocket
-
-       try {
-         packet = parse(msg)
-       } catch(err) {
-         message = generate({ code: '5.00', payload: new Buffer('Unable to parse packet') })
-         that._sock.send(message, 0, message.length, rsinfo.port, rsinfo.address)
-         //TODO: send
-         return
-       }
-
-       //outSocket = that._sock.address();
-       that._handle(msg, rsinfo, outSocket)
-       
-       
-  });
-}
 
 Agent.prototype._cleanUp = function cleanUp() {
    if (--this._requests !== 0)
@@ -115,7 +131,9 @@ Agent.prototype._doClose = function() {
 }
 
 Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
-  var packet = parse(msg)
+   console.log("Handle message");
+   try{
+      var packet = parse(msg)
     , buf
     , response
     , that = this
@@ -128,8 +146,10 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
         if (that._closing && that._msgInFlight === 0) {
           that._doClose()
         }
-      }
-
+   };}catch(err){
+      console.log("Error in _handle: "+err);
+   }
+   
   if (packet.confirmable) {
     buf = generate({
         code: '0.00'
@@ -262,7 +282,9 @@ Agent.prototype._nextMessageId = function nextToken() {
 }
 
 Agent.prototype.request = function request(url) {
-  //this._init()
+   console.log("Start request");
+  this._init()
+  console.log("New request");
 
   var req
     , response

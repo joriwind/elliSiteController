@@ -53,6 +53,7 @@ int dtls_select();
 void writeDTLS(CYASSL* ssl, char* message);
 CYASSL* initDTLS();
 void readDTLS(CYASSL* ssl, callbackFt fct);
+void closeDTLS();
 
 /* costumes for select_ret to wear */
 enum {
@@ -493,6 +494,10 @@ void writeDTLS(CYASSL* ssl, char* message){
    //CyaSSL_free(ssl);
 
    /* End: Reply to the Client */
+}
+
+void closeDTLS(){
+   cleanup = 1;
 }
 
 
