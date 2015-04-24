@@ -22,7 +22,7 @@ var bl              = require('bl')
   , parseBlock2     = require('./node_modules/coap/lib/helpers').parseBlock2
   , createBlock2    = require('./node_modules/coap/lib/helpers').createBlock2
   , getOption       = require('./node_modules/coap/lib/helpers').getOption
-  , maxToken        = Math.pow(2, 32)
+  , maxToken        = Math.pow(2, 24) //First it was 32 but coap-packet max length = 8 --> 2^26
   , maxMessageId    = Math.pow(2, 16)
 
 function Agent(opts) {
@@ -264,7 +264,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
 }
 
 Agent.prototype._nextToken = function nextToken() {
-  var buf = new Buffer(4096)
+  var buf = new Buffer(8)
 
   if (++this._lastToken === maxToken)
     this._lastToken = 0
@@ -301,7 +301,11 @@ Agent.prototype.request = function request(url) {
 
     if (!(packet.ack || packet.reset)) {
       packet.messageId = that._nextMessageId()
+      //console.log("Previous token: " + packet.token.toString('utf8'));
+      //console.log("Length of token(Before): " + packet.token.length);
       packet.token = that._nextToken()
+      console.log("Length of token(After): " + packet.token.length);
+      //console.log("Next token: " + packet.token.toString('utf8'));
     }
 
     try {
