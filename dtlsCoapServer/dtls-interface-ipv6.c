@@ -51,12 +51,25 @@ void readDTLS(WOLFSSL* ssl, callbackFt fct);
 void writeDTLS(WOLFSSL* ssl, char* message);
 void closeDTLS();
 
+WOLFSSL_CTX** getTypeWOLFSSL_CTX(void);
+WOLFSSL** getTypeWOLFSSL(void);
+
 enum {
     TEST_SELECT_FAIL,
     TEST_TIMEOUT,
     TEST_RECV_READY,
     TEST_ERROR_READY
 };
+
+WOLFSSL_CTX** getTypeWOLFSSL_CTX(void){
+   WOLFSSL_CTX* ctx;
+   return &ctx;
+}
+
+WOLFSSL** getTypeWOLFSSL(void){
+   WOLFSSL* ssl;
+   return &ssl;
+}
 
 static INLINE int tcp_select(int socketfd, int to_sec)
 {
@@ -126,7 +139,18 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    if(*ctx == NULL){
       printf("Need to init ctx first\n");
       return -1;
+   }else{
+      printf("Ctx check passed \n");
    }
+   
+   if(*ssl == NULL){
+      printf("No ssl object available\n");
+      WOLFSSL* sslnew;
+      *ssl = sslnew;
+   }else{
+      printf("Ssl check passed \n");
+   }
+   
    int     on = 1;
    int     res = 1;
    int     sc_fd = 0;            /* Initialize our socket */
@@ -141,7 +165,7 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
 
    //WOLFSSL* ssl = NULL;              /* Initialize ssl object */
    struct sockaddr_in6 servAddr;     /* our server's address */
-    
+        
    /* Create the WOLFSSL Object */
    if (( *ssl = wolfSSL_new(*ctx)) == NULL) {
       printf("Unable to create ssl object\n");

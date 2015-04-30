@@ -7,7 +7,7 @@
  */
 
 var bl              = require('bl')
-  , Dtls            = require('./DtlsV2') //interface
+  , Dtls            = require('./Dtls') //interface
   , util            = require('util')
   , events          = require('events')
   , parse           = require('coap-packet').parse
@@ -39,8 +39,16 @@ function Agent(opts) {
          return bool;
       });*/
 
-   if (!opts.type)
-      opts.type = 'dtls4S'
+   if(!opts.eccCert)
+      opts.eccCert = ''
+   if(!opts.ourCert)
+      opts.ourCert = ''
+   if(!opts.ourKey)
+      opts.ourKey = ''
+   if(!opts.host)
+      opts.host = '::1'
+   if(!opts.port)
+      opts.port = 5683
 
    this._opts = opts
    
@@ -56,9 +64,13 @@ Agent.prototype._init = function connectSock(callback) {
    }
    console.log("dtlsAgent: Init");
    var that = this;
-   this._sock = new Dtls();
-   this._sock.createServer("",function(initReady){
-         that._sock.read(function(msg){
+   this._sock = new Dtls(this._opts);
+   this._sock.connectToServer(this._opts,function(initReady){
+         if(initReady == false){
+            console.log("FAIL");
+            return;
+         }
+         that._sock.recvfrom(function(msg){
             console.log("Message received in Agent: " + msg+ "\n");
                //that._sock.write("Hello testin after log!!");
             var packet

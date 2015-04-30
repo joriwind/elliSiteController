@@ -1,18 +1,13 @@
 const coap  = require('coap'); // or coap 
-var Agent = require('./dtlsAgent');
+var DtlsClientAgent = require('./dtlsClientAgent');
 
-var agent = new Agent({'type':'dtls4S'});
+var dtlsClientAgent = new DtlsClientAgent({'type':'dtls_client', 'eccCert':'', 'ourCert':'', 'ourKey':'', 'host':'::1', 'port':5683});
 
 
-//agent._connect(function(ready){
-   //return bool;
-   //console.log("Connect ready: " + ready);
    
-   var req   = coap.request({'hostname':'localhost', 'pathname':'/Matteo', 'agent':agent});
-   req.on('response', function(res) {
-     res.pipe(process.stdout)
-   })
-   //agent._sock.send()
-   req.end()
-//})
+var req   = coap.request({'hostname':'', 'pathname':'/Lights', 'agent':dtlsClientAgent});
+req.on('response', function(res) {
+   res.pipe(process.stdout)
+})
+req.end()
 
