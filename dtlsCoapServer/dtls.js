@@ -2,9 +2,10 @@ var ffi = require('ffi');
 var ref = require('ref');
 
 var Dtls = function(arg){
-   if (!arg)
+   if (!arg){
       console.log("Specify options for dtls communication");
       arg = {}
+   }
    if(arg.ctx){
       WOLFSSL_CTX = ctx;
    }else{
@@ -37,19 +38,19 @@ var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
 });
 
 Dtls.prototype.initDTLS = function(arg, callback){
-   arg.eccCert = "";
-   arg.ourCert = "";
-   arg.ourKey = "";
    console.log("NODEJS: Initializing ctx..." + JSON.stringify(arg));
    this.WOLFSSL_CTX = ref.alloc(WOLFSSL_CTXPtr);
    //if(!this.WOLFSSL_CTX)
    //   this.WOLFSSL_CTX = dtls_interface.getTypeWOLFSSL_CTX();
-   if(dtls_interface.initDTLS(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString()) <0){
-   //if(dtls_interface.initDTLS(this.WOLFSSL_CTX, eccCert, ourCert, ourKey) <0){
-      callback(false);
-   }
-   console.log("DTLS ctx has been initialized ");
-   callback(true);
+   dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), function(err, res){
+      if(res < 0 ){
+         callback(false);
+      }else{
+         console.log("DTLS ctx has been initialized ");
+         callback(true);
+      }
+      return;
+   });
 }
 
 Dtls.prototype.connectToServer = function(arg, callback){
@@ -57,11 +58,15 @@ Dtls.prototype.connectToServer = function(arg, callback){
    //if(!this.WOLFSSL)
    //   this.WOLFSSL = dtls_interface.getTypeWOLFSSL();
    this.WOLFSSL = ref.alloc(WOLFSSLPtr);
-   if(dtls_interface.connectToServer(this.WOLFSSL, this.WOLFSSL_CTX, arg.host, arg.port) <0){
-      callback(false);
-   }
-   console.log("Connection established with server ");
-   callback(true);
+   var that = this;
+   dtls_interface.connectToServer.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.host, arg.port, function(err, res){
+      if(res <0){
+         callback(false);
+      }else{
+         console.log("Connection established with server ");
+         callback(true);
+      }
+   });
 }
 
 Dtls.prototype.recvfrom = function(callback){
@@ -82,7 +87,9 @@ Dtls.prototype.recvfrom = function(callback){
 
 Dtls.prototype.sendto = function(message){
    
-   dtls_interface.writeDTLS(message);
+   dtls_interface.writeDTLS.async(message, function(err, res){
+      return;
+   });
 }
 
 

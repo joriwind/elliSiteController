@@ -53,6 +53,7 @@ function Agent(opts) {
    this._opts = opts
    
    this._init();
+   
 
 }
 
@@ -65,9 +66,11 @@ Agent.prototype._init = function connectSock(callback) {
    console.log("dtlsAgent: Init");
    var that = this;
    this._sock = new Dtls(this._opts);
+      
    this._sock.connectToServer(this._opts,function(initReady){
          if(initReady == false){
             console.log("FAIL");
+            that.emit('error','ENOTFOUND');
             return;
          }
          that._sock.recvfrom(function(msg){
@@ -108,6 +111,7 @@ Agent.prototype._init = function connectSock(callback) {
              that._handle(msg, rsinfo, outSocket)
          });
    });
+   
 
    this._msgIdToReq = {}
    this._tkToReq = {}
@@ -276,12 +280,13 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
 }
 
 Agent.prototype._nextToken = function nextToken() {
-  var buf = new Buffer(8)
+  var buf = new Buffer(4);
 
-  if (++this._lastToken === maxToken)
+  if (++this._lastToken === maxToken){
     this._lastToken = 0
+  }
 
-  buf.writeUInt32BE(this._lastToken, 0)
+  buf.writeUInt32BE(this._lastToken, 0);
 
   return buf;
 }
