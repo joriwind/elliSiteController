@@ -45,15 +45,16 @@ var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
 Dtls.prototype.initDTLS = function(arg, callback){
    console.log("NODEJS: Initializing ctx..." + JSON.stringify(arg));
    this.WOLFSSL_CTX = ref.alloc(WOLFSSL_CTXPtr);
+   var that = this;
    //if(!this.WOLFSSL_CTX)
    //   this.WOLFSSL_CTX = dtls_interface.getTypeWOLFSSL_CTX();
    dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), function(err, res){
       if(res < 0 ){
          callback(false);
-         this.emit('error','UNKNOWN ERROR');
+         that.emit('error','UNKNOWN ERROR');
       }else{
          console.log("DTLS ctx has been initialized ");
-         this.emit('initialized',true);
+         that.emit('initialized',true);
          callback(true);
       }
       return;
@@ -68,11 +69,11 @@ Dtls.prototype.connectToServer = function(arg, callback){
    var that = this;
    dtls_interface.connectToServer.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.host, arg.port, function(err, res){
       if(res <0){
-         this.emit('error','ENOTFOUND');
+         that.emit('error','ENOTFOUND');
          callback(false);
       }else{
          console.log("Connection established with server ");
-         this.emit('connected',true);
+         that.emit('connected',true);
          callback(true);
       }
    });
