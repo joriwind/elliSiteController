@@ -1,5 +1,7 @@
 var ffi = require('ffi');
 var ref = require('ref');
+var util            = require('util');
+var events          = require('events');
 
 var Dtls = function(arg){
    if (!arg){
@@ -18,6 +20,9 @@ var Dtls = function(arg){
    }
    
 }
+
+
+util.inherits(Dtls, events.EventEmitter)
 
 // typedefs
 var WOLFSSL_CTX = ref.types.void; // we don't know what the layout of "WOLFSSL_CTX" looks like
@@ -45,8 +50,10 @@ Dtls.prototype.initDTLS = function(arg, callback){
    dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), function(err, res){
       if(res < 0 ){
          callback(false);
+         this.emit('error','UNKNOWN ERROR');
       }else{
          console.log("DTLS ctx has been initialized ");
+         this.emit('initialized',true);
          callback(true);
       }
       return;
@@ -61,9 +68,11 @@ Dtls.prototype.connectToServer = function(arg, callback){
    var that = this;
    dtls_interface.connectToServer.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.host, arg.port, function(err, res){
       if(res <0){
+         this.emit('error','ENOTFOUND');
          callback(false);
       }else{
          console.log("Connection established with server ");
+         this.emit('connected',true);
          callback(true);
       }
    });

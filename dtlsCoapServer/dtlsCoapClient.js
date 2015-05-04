@@ -6,16 +6,21 @@ var dtlsClientAgent = new DtlsClientAgent({'type':'dtls_client', 'eccCert':'', '
 
 console.log("Print of variable: " + dtlsClientAgent);
 
-   
-var req   = coap.request({'hostname':'', 'pathname':'/Lights', 'agent':dtlsClientAgent});
-req.on('error', function(err){
-   console.log("Could not connect to server");
-   req.end()
+dtlsClientAgent.on('connected', function(res){
+   console.log("Starting request");
+   var req   = coap.request({'hostname':'', 'pathname':'/Lights', 'agent':dtlsClientAgent});
+   req.on('error', function(err){
+      console.log("Could not connect to server");
+      req.end()
+   });
+   req.on('response', function(res) {
+      res.pipe(process.stdout)
+      req.end()
+   })
 });
-req.on('response', function(res) {
-   res.pipe(process.stdout)
-   req.end()
-})
+
+   
+
 
 
 

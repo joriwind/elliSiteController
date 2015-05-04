@@ -66,12 +66,19 @@ Agent.prototype._init = function connectSock(callback) {
    console.log("dtlsAgent: Init");
    var that = this;
    this._sock = new Dtls(this._opts);
-      
-   this._sock.connectToServer(this._opts,function(initReady){
+   
+   this._sock.on('error', function(err){
+      console.log("Error in init dtls: " + err);
+   });
+   
+   this._sock.on('initialized', function(bool){
+      this._sock.connectToServer(this._opts,function(initReady){
          if(initReady == false){
             console.log("FAIL");
             that.emit('error','ENOTFOUND');
             return;
+         }else{
+            that.emit('connected', true);
          }
          that._sock.recvfrom(function(msg){
             console.log("Message received in Agent: " + msg+ "\n");
@@ -110,19 +117,23 @@ Agent.prototype._init = function connectSock(callback) {
              outSocket = that._sock.address();
              that._handle(msg, rsinfo, outSocket)
          });
+         
+         this._msgIdToReq = {}
+         this._tkToReq = {}
+
+         this._lastToken = Math.floor(Math.random() * (maxToken - 1))
+         this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
+
+         this._closing = false
+         this._msgInFlight = 0
+         this._requests = 0
+         console.log("dtlsAgent: Init complete");
+         
+      });
    });
    
 
-   this._msgIdToReq = {}
-   this._tkToReq = {}
-
-   this._lastToken = Math.floor(Math.random() * (maxToken - 1))
-   this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
-
-   this._closing = false
-   this._msgInFlight = 0
-   this._requests = 0
-   console.log("dtlsAgent: Init complete");
+   
 }
 
 
