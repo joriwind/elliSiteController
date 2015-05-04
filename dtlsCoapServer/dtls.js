@@ -3,7 +3,7 @@ var ref = require('ref');
 var util            = require('util');
 var events          = require('events');
 
-var Dtls = function(arg){
+var Dtls = function(arg, callback){
    if (!arg){
       console.log("Specify options for dtls communication");
       arg = {}
@@ -50,14 +50,13 @@ Dtls.prototype.initDTLS = function(arg, callback){
    //   this.WOLFSSL_CTX = dtls_interface.getTypeWOLFSSL_CTX();
    dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), function(err, res){
       if(res < 0 ){
-         callback(false);
          that.emit('error','UNKNOWN ERROR');
+         callback(false);
       }else{
          console.log("DTLS ctx has been initialized ");
          that.emit('initialized',true);
          callback(true);
       }
-      return;
    });
 }
 

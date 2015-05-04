@@ -19,6 +19,10 @@ dtlsClientAgent.on('connected', function(res){
    })
 });
 
+dtlsClientAgent.on('error', function(err){
+   console.log('Something went wrong: ' + err);
+});
+
    
 
 

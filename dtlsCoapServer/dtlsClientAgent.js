@@ -68,68 +68,75 @@ Agent.prototype._init = function connectSock(callback) {
    this._sock = new Dtls(this._opts);
    
    this._sock.on('error', function(err){
-      console.log("Error in init dtls: " + err);
+      console.log("Error in dtls: " + err);
+      that.emit('error', err);
    });
    
    this._sock.on('initialized', function(bool){
+      console.log("DTLS is initialized");
       that._sock.connectToServer(that._opts,function(initReady){
+         console.log("DTLS connnectToServer return");
          if(initReady == false){
-            console.log("FAIL");
+            console.log("FAIL in connectToServer");
             that.emit('error','ENOTFOUND');
             return;
-         }else{
-            that.emit('connected', true);
          }
-         that._sock.recvfrom(function(msg){
-            console.log("Message received in Agent: " + msg+ "\n");
-               //that._sock.write("Hello testin after log!!");
-            var packet
-            , message
-            , outSocket;
-            var rsinfo = {};
-            try {
-               packet = parse(msg)
-             } catch(err) {
-                console.log("Error in parse message: " + err+ "\n");
-                try{
-                     message = generate({ code: '5.00', payload: new Buffer('Unable to parse packet') })
-                     console.log("Generated: 'Unable to parse packet' message: " + message+ "\n");
-                }catch(err){
-                  console.log("Error in generate message: " + err + "\n");
-                   
-                }
-                /*
-                console.log("Ready to send: " + message.toString('utf8'));
-                var buff = new Buffer(message.toString());
-                try{
-                   var newMsg = parse(buff);
-                }catch(err){
-                  console.log("Error in parse2 message: " + err);
-                }*/
-               
-               that._sock.send(message, 0, message.length,
-                               rsinfo.port, rsinfo.address)
-               
-               return
-             }
-               
-
-             outSocket = that._sock.address();
-             that._handle(msg, rsinfo, outSocket)
-         });
          
-         this._msgIdToReq = {}
-         this._tkToReq = {}
-
-         this._lastToken = Math.floor(Math.random() * (maxToken - 1))
-         this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
-
-         this._closing = false
-         this._msgInFlight = 0
-         this._requests = 0
-         console.log("dtlsAgent: Init complete");
          
       });
+      
+   });
+   
+   this._sock.on('connected', function(bool){
+      that._sock.recvfrom(function(msg){
+         console.log("Message received in Agent: " + msg+ "\n");
+            //that._sock.write("Hello testin after log!!");
+         var packet
+         , message
+         , outSocket;
+         var rsinfo = {};
+         try {
+            packet = parse(msg)
+          } catch(err) {
+             console.log("Error in parse message: " + err+ "\n");
+             try{
+                  message = generate({ code: '5.00', payload: new Buffer('Unable to parse packet') })
+                  console.log("Generated: 'Unable to parse packet' message: " + message+ "\n");
+             }catch(err){
+               console.log("Error in generate message: " + err + "\n");
+                
+             }
+             /*
+             console.log("Ready to send: " + message.toString('utf8'));
+             var buff = new Buffer(message.toString());
+             try{
+                var newMsg = parse(buff);
+             }catch(err){
+               console.log("Error in parse2 message: " + err);
+             }*/
+            
+            that._sock.send(message, 0, message.length,
+                            rsinfo.port, rsinfo.address)
+            
+            return
+          }
+            
+
+          outSocket = that._sock.address();
+          that._handle(msg, rsinfo, outSocket)
+      });
+      
+      this._msgIdToReq = {}
+      this._tkToReq = {}
+
+      this._lastToken = Math.floor(Math.random() * (maxToken - 1))
+      this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
+
+      this._closing = false
+      this._msgInFlight = 0
+      this._requests = 0
+      console.log("dtlsAgent: Init complete");
+      that.emit('connected', true);
    });
    
 
