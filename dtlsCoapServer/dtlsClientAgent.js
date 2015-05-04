@@ -67,11 +67,13 @@ Agent.prototype._init = function connectSock(callback) {
    var that = this;
    this._sock = new Dtls(this._opts);
    
+   //Catch errors of DTLS
    this._sock.on('error', function(err){
       console.log("Error in dtls: " + err);
       that.emit('error', err);
    });
    
+   //When DTLS initialize try to connect with peer
    this._sock.on('initialized', function(bool){
       console.log("DTLS is initialized");
       that._sock.connectToServer(that._opts,function(initReady){
@@ -79,14 +81,12 @@ Agent.prototype._init = function connectSock(callback) {
          if(initReady == false){
             console.log("FAIL in connectToServer");
             that.emit('error','ENOTFOUND');
-            return;
          }
-         
-         
       });
       
    });
    
+   //When connected setup recv thread handler
    this._sock.on('connected', function(bool){
       that._sock.recvfrom(function(msg){
          console.log("Message received in Agent: " + msg+ "\n");

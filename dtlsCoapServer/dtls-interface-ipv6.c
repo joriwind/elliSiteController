@@ -47,8 +47,8 @@ typedef int (*callbackFt)(char* message);
 
 int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey);
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
-void readDTLS(WOLFSSL* ssl, callbackFt fct);
-void writeDTLS(WOLFSSL* ssl, char* message);
+void readDTLS(WOLFSSL** ssl, callbackFt fct);
+void writeDTLS(WOLFSSL** ssl, char* message);
 void closeDTLS();
 
 WOLFSSL_CTX** getTypeWOLFSSL_CTX(void);
@@ -284,7 +284,7 @@ int main(int argc, char** argv)
       return -1;
    }
    
-   writeDTLS(ssl, "Hello this is a test\n");
+   writeDTLS(&ssl, "Hello this is a test\n");
    //readDTLS(ssl, ) inplement test callback!?
    
    closeDTLS();
@@ -324,7 +324,7 @@ int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey)
 
 
    /* "./config --enable-debug" and uncomment next line for debugging */
-   wolfSSL_Debugging_ON(); 
+   //wolfSSL_Debugging_ON(); 
 
    /* Initialize WOLFSSL */
    wolfSSL_Init();
@@ -360,15 +360,16 @@ int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey)
 /**
  * Do read while cleanup != 1, send received messages back to callback function
 **/
-void readDTLS(WOLFSSL* ssl, callbackFt fct){
+void readDTLS(WOLFSSL** ssl, callbackFt fct){
    /* Begin do-while read */
    char buff[MSGLEN];
    int recvLen;
    int readWriteErr;
+   printf("Starting to read\n");
    //TODO: fix error, ssl should have been given correctly to read
    /* Begin: Reply to the client */
    do {
-      recvLen = wolfSSL_read(ssl, buff, sizeof(buff)-1);
+      recvLen = wolfSSL_read(*ssl, buff, sizeof(buff)-1);
    
       //recvLen = 0;
      do {
@@ -377,12 +378,12 @@ void readDTLS(WOLFSSL* ssl, callbackFt fct){
              break;
          }
          if (recvLen < 0) {
-             readWriteErr = wolfSSL_get_error(ssl, 0);
+             readWriteErr = wolfSSL_get_error(*ssl, 0);
              if (readWriteErr != SSL_ERROR_WANT_READ) {
                  printf("Read Error, error was: %d.\n", readWriteErr);
                  cleanup = 1;
              } else {
-                 recvLen = wolfSSL_read(ssl, buff, sizeof(buff)-1);
+                 recvLen = wolfSSL_read(*ssl, buff, sizeof(buff)-1);
                  //printf("Read, read and read");
              }
          }
@@ -407,8 +408,9 @@ void readDTLS(WOLFSSL* ssl, callbackFt fct){
 /**
  * Send a message to peer specified in WOLFSSL* object
 **/
-void writeDTLS(WOLFSSL* ssl, char* message){
+void writeDTLS(WOLFSSL** ssl, char* message){
    /* Begin do-while write */
+   printf("I am going to write: %s\n", message);
    int readWriteErr;
    char    ack[] = "I hear you fashizzle\n";
    do {
@@ -416,10 +418,11 @@ void writeDTLS(WOLFSSL* ssl, char* message){
       //    memset(&buff, 0, sizeof(buff));
       //    break;
       //}
-      readWriteErr = wolfSSL_get_error(ssl, 0);
-      if (wolfSSL_write(ssl, message, strlen(message)) < 0) {
+      readWriteErr = wolfSSL_get_error(*ssl, 0);
+      if (wolfSSL_write(*ssl, message, strlen(message)) < 0) {
           printf("Write error.\n");
           cleanup = 1;
+          return;
       }
       printf("Reply sent:\"%s\" with length: %i \n", message, sizeof(message));
    }while(readWriteErr == SSL_ERROR_WANT_WRITE && cleanup != 1);

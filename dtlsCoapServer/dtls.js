@@ -95,8 +95,8 @@ Dtls.prototype.recvfrom = function(callback){
 }
 
 Dtls.prototype.sendto = function(message){
-   
-   dtls_interface.writeDTLS.async(message, function(err, res){
+   console.log("Writing to peer message: " + message);
+   dtls_interface.writeDTLS.async(this.WOLFSSL, message, function(err, res){
       return;
    });
 }
@@ -114,7 +114,7 @@ Dtls.prototype.send = function(message, number, msglen, port, address, ack){
 
 Dtls.prototype.send = function(message, number, msglen, port, address){
    console.log("Send message\n");
-   this.write(message.toString()); //message is of type: Buffer
+   this.sendto(message.toString()); //message is of type: Buffer
    
 }
 
