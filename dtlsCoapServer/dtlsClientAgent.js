@@ -72,7 +72,7 @@ Agent.prototype._init = function connectSock(callback) {
    });
    
    this._sock.on('initialized', function(bool){
-      this._sock.connectToServer(this._opts,function(initReady){
+      that._sock.connectToServer(this._opts,function(initReady){
          if(initReady == false){
             console.log("FAIL");
             that.emit('error','ENOTFOUND');
