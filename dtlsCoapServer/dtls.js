@@ -124,7 +124,9 @@ Dtls.prototype.address = function(){
 }
 
 Dtls.prototype.close = function(){
-   
+   dtls_interface.closeDTLS.async(function(err, res){
+      console.log("Connection closed");
+   });
 }
 
 Dtls.prototype.testRepeat = function(){

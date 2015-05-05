@@ -352,6 +352,7 @@ Agent.prototype.request = function request(url) {
 
     that._msgIdToReq[packet.messageId] = req
     that._tkToReq[that._lastToken] = req
+   console.log("line 356");
 
     req.sender.send(buf)
     
