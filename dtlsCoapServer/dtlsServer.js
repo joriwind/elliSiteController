@@ -4,6 +4,8 @@
  * node-coap is licensed under an MIT +no-false-attribs license.
  * All rights not explicitly granted in the MIT license are reserved.
  * See the included LICENSE file for more details.
+ 
+ * @author: Jori Winderickx, reconfiguration to dtls
  */
 
 var Dtls           = require('./Dtls')
