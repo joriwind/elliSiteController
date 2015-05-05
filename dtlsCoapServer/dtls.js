@@ -53,7 +53,7 @@ Dtls.prototype.initDTLS = function(arg, callback){
    
    dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), arg.isServer, function(err, res){
       if(res < 0 ){
-         that.emit('error','UNKNOWN ERROR');
+         that.emit('error',res);
          callback(false);
       }else{
          console.log("DTLS ctx has been initialized ");
@@ -71,7 +71,7 @@ Dtls.prototype.connectToServer = function(arg, callback){
    var that = this;
    dtls_interface.connectToServer.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.host, arg.port, function(err, res){
       if(res <0){
-         that.emit('error','ENOTFOUND');
+         that.emit('error',res);
          callback(false);
       }else{
          console.log("Connection established with server ");
@@ -88,7 +88,7 @@ Dtls.prototype.awaitConnection = function(arg, callback){
    var that = this;
    dtls_interface.awaitConnection.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.port, function(err, res){
       if(res <0){
-         that.emit('error','NOTHING');
+         that.emit('error',res);
          callback(false);
       }else{
          console.log("Connection established with client ");

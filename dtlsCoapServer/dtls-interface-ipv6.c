@@ -377,12 +377,12 @@ int main(int argc, char** argv)
    WOLFSSL_CTX* ctx = 0;
    WOLFSSL* ssl = 0;
 
-   if(initDTLS(&ctx,"","","", 0) == -1){
+   if(initDTLS(&ctx,"","","", 0) < 0){
       printf("Unable to initialize ctx\n");
       return -1;
    }
     
-   if(connectToServer(&ssl,&ctx,"::1",5683) == -1){
+   if(connectToServer(&ssl,&ctx,"::1",5683) < 0){
       printf("Unable to initialize ssl\n");
       return -1;
    }
