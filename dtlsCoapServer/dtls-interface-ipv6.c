@@ -256,7 +256,7 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    }
    if (ret != SSL_SUCCESS){
       printf("SSL_connect failed\n");
-      return ret;
+      return error;
    }
    
    printf("Connected to server, returning WOLFSSL* object\n");
@@ -360,7 +360,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
     }
     if (ret != SSL_SUCCESS){
       printf("SSL_accept failed\n");
-      return ret;
+      return error;
     }
     
    printf("Connection established with client, returning WOLFSSL* object\n");
