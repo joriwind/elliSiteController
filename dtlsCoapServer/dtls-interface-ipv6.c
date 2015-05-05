@@ -45,8 +45,9 @@ static int cleanup;                 /* To handle shutdown */
 /* Callback function*/
 typedef int (*callbackFt)(char* message);
 
-int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey);
+int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, int isServer);
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
+int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port);
 void readDTLS(WOLFSSL** ssl, callbackFt fct);
 void writeDTLS(WOLFSSL** ssl, char* message);
 void closeDTLS();
@@ -255,7 +256,7 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    }
    if (ret != SSL_SUCCESS){
       printf("SSL_connect failed\n");
-      return -1;
+      return ret;
    }
    
    printf("Connected to server, returning WOLFSSL* object\n");
@@ -263,6 +264,108 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    return 1;
 }
 
+int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
+   if(*ctx == NULL){
+      printf("Need to init ctx first\n");
+      return -1;
+   }else{
+      printf("Ctx check passed \n");
+   }
+   
+   if(*ssl == NULL){
+      printf("No ssl object available\n");
+      WOLFSSL* sslnew;
+      *ssl = sslnew;
+   }else{
+      printf("Ssl check passed \n");
+   }
+   
+   int     on = 1;
+   int     res = 1;
+   int     sc_fd = 0;            /* Initialize our socket */
+   int     len = sizeof(on);
+   int     cont;
+
+   //WOLFSSL* ssl = NULL;              /* Initialize ssl object */
+   struct sockaddr_in6 clientAddr;     /* our server's address */
+        
+   /* Create the WOLFSSL Object */
+   if (( *ssl = wolfSSL_new(*ctx)) == NULL) {
+      printf("Unable to create ssl object\n");
+      return -1;
+   }
+   
+   memset((char *)&clientAddr, 0, sizeof(clientAddr));
+   clientAddr.sin6_family = AF_INET6;
+   clientAddr.sin6_port = htons(port);
+   clientAddr.sin6_addr = in6addr_any;
+   
+   
+   wolfSSL_dtls_set_peer(*ssl, &clientAddr, sizeof(clientAddr));
+   
+   /* Create a UDP/IP client socket, IPv6 */
+   if ((sc_fd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0 ) {
+      printf("Cannot create socket.\n");
+      return -1;
+   }
+   
+   //set non blocking socket
+   int flags = fcntl(sc_fd, F_GETFL, 0);
+   if (flags < 0){
+      printf("fcntl get failed\n");
+   }
+   flags = fcntl(sc_fd, F_SETFL, flags | O_NONBLOCK);
+   if (flags < 0){
+      printf("fcntl set failed\n");
+   }
+   
+   wolfSSL_set_fd(*ssl, sc_fd);
+   printf("Socket allocated\n");
+
+   wolfSSL_set_using_nonblock(*ssl, 1);
+   
+   int ret = SSL_accept(*ssl);
+   
+   int error = wolfSSL_get_error(*ssl, 0);
+    int select_ret;
+
+    while (ret != SSL_SUCCESS && (error == SSL_ERROR_WANT_READ ||
+                                  error == SSL_ERROR_WANT_WRITE)) {
+        int currTimeout = 1;
+
+        if (error == SSL_ERROR_WANT_READ)
+            printf("... server would read block\n");
+        else
+            printf("... server would write block\n");
+
+        currTimeout = wolfSSL_dtls_get_current_timeout(*ssl);
+        select_ret = tcp_select(sc_fd, currTimeout);
+
+        if ((select_ret == TEST_RECV_READY) ||
+                                        (select_ret == TEST_ERROR_READY)) {
+            ret = wolfSSL_accept(*ssl);
+            
+            error = wolfSSL_get_error(*ssl, 0);
+        }
+        else if (select_ret == TEST_TIMEOUT && !wolfSSL_dtls(*ssl)) {
+            error = SSL_ERROR_WANT_READ;
+        }
+        else if (select_ret == TEST_TIMEOUT && wolfSSL_dtls(*ssl) &&
+                                            wolfSSL_dtls_got_timeout(*ssl) >= 0) {
+            error = SSL_ERROR_WANT_READ;
+        }
+        else {
+            error = SSL_FATAL_ERROR;
+        }
+    }
+    if (ret != SSL_SUCCESS){
+      printf("SSL_accept failed\n");
+      return ret;
+    }
+    
+   printf("Connection established with client, returning WOLFSSL* object\n");
+   return 1;
+}
 
 int main(int argc, char** argv)
 {
@@ -274,7 +377,7 @@ int main(int argc, char** argv)
    WOLFSSL_CTX* ctx = 0;
    WOLFSSL* ssl = 0;
 
-   if(initDTLS(&ctx,"","","") == -1){
+   if(initDTLS(&ctx,"","","", 0) == -1){
       printf("Unable to initialize ctx\n");
       return -1;
    }
@@ -291,6 +394,8 @@ int main(int argc, char** argv)
 
    return 0;
 }
+
+
 
 /**
  * Create WOLFSSL_CTX for communicating with dtls servers
