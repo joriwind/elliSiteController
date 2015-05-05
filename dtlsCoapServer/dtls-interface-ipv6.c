@@ -343,7 +343,8 @@ int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey)
    }
     
     
-   if (wolfSSL_CTX_use_certificate_chain_file(*ctx, ourCert) != SSL_SUCCESS){
+   //if (wolfSSL_CTX_use_certificate_chain_file(*ctx, ourCert) != SSL_SUCCESS){
+   if (wolfSSL_CTX_use_certificate_file(*ctx, ourCert, SSL_FILETYPE_PEM) != SSL_SUCCESS){
       printf("can't load client cert file, check file and run from wolfSSL home dir\n");
       return -1;
    }
