@@ -33,8 +33,9 @@ var WOLFSSLPtr = ref.refType(WOLFSSL);
 var argument = "Hello to JavaScript";
 
 var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
-  'initDTLS': [ 'int', [WOLFSSL_CTXPtr, 'string','string','string' ] ],
+  'initDTLS': [ 'int', [WOLFSSL_CTXPtr, 'string','string','string', 'int' ] ],
   'connectToServer': ['int', [WOLFSSLPtr, WOLFSSL_CTXPtr, 'string', 'int']],
+  'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int']],
   'readDTLS': ['void',[WOLFSSLPtr, 'pointer']],
   'writeDTLS': ['void',[WOLFSSLPtr,'string']],
   'closeDTLS': ['void',[]],
@@ -46,9 +47,11 @@ Dtls.prototype.initDTLS = function(arg, callback){
    console.log("NODEJS: Initializing ctx..." + JSON.stringify(arg));
    this.WOLFSSL_CTX = ref.alloc(WOLFSSL_CTXPtr);
    var that = this;
-   //if(!this.WOLFSSL_CTX)
-   //   this.WOLFSSL_CTX = dtls_interface.getTypeWOLFSSL_CTX();
-   dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), function(err, res){
+   if(!arg.isServer){
+      arg.isServer = 0;
+   }
+   
+   dtls_interface.initDTLS.async(this.WOLFSSL_CTX, arg.eccCert.toString(), arg.ourCert.toString(), arg.ourKey.toString(), arg.isServer, function(err, res){
       if(res < 0 ){
          that.emit('error','UNKNOWN ERROR');
          callback(false);
@@ -72,6 +75,23 @@ Dtls.prototype.connectToServer = function(arg, callback){
          callback(false);
       }else{
          console.log("Connection established with server ");
+         that.emit('connected',true);
+         callback(true);
+      }
+   });
+}
+
+Dtls.prototype.awaitConnection = function(arg, callback){
+   console.log("NODEJS: connecting to server...");
+   
+   this.WOLFSSL = ref.alloc(WOLFSSLPtr);
+   var that = this;
+   dtls_interface.awaitConnection.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.port, function(err, res){
+      if(res <0){
+         that.emit('error','NOTHING');
+         callback(false);
+      }else{
+         console.log("Connection established with client ");
          that.emit('connected',true);
          callback(true);
       }
