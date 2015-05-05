@@ -22,7 +22,7 @@ var bl              = require('bl')
   , parseBlock2     = require('./node_modules/coap/lib/helpers').parseBlock2
   , createBlock2    = require('./node_modules/coap/lib/helpers').createBlock2
   , getOption       = require('./node_modules/coap/lib/helpers').getOption
-  , maxToken        = Math.pow(2, 24) //First it was 32 but coap-packet max length = 8 --> 2^26
+  , maxToken        = Math.pow(2, 26) //First it was 32 but coap-packet max length = 8 --> 2^26
   , maxMessageId    = Math.pow(2, 16)
 
 function Agent(opts) {
@@ -126,20 +126,20 @@ Agent.prototype._init = function connectSock(callback) {
           that._handle(msg, rsinfo, outSocket)
       });
       
-      this._msgIdToReq = {}
-      this._tkToReq = {}
-
-      this._lastToken = Math.floor(Math.random() * (maxToken - 1))
-      this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
-
-      this._closing = false
-      this._msgInFlight = 0
-      this._requests = 0
+      
       console.log("dtlsAgent: Init complete");
       that.emit('connected', true);
    });
    
+   this._msgIdToReq = {}
+   this._tkToReq = {}
 
+   this._lastToken = Math.floor(Math.random() * (maxToken - 1))
+   this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
+   console.log("Last token init: " + this._lastToken);
+   this._closing = false
+   this._msgInFlight = 0
+   this._requests = 0
    
 }
 
@@ -299,7 +299,14 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
 
 Agent.prototype._nextToken = function nextToken() {
   var buf = new Buffer(4);
-
+  
+  if(!this._lastToken){
+     console.log("Error: Undefined _lastToken");
+     this.emit('error', 'UNDEFINED_VARIABLE');
+     throw undefined;
+     return;
+  }
+  
   if (++this._lastToken === maxToken){
     this._lastToken = 0
   }
@@ -320,6 +327,7 @@ Agent.prototype.request = function request(url) {
    console.log("Start request");
   this._init()
   console.log("New request");
+  console.log("_last token: " + this._lastToken);
 
   var req
     , response
@@ -337,9 +345,9 @@ Agent.prototype.request = function request(url) {
     if (!(packet.ack || packet.reset)) {
       packet.messageId = that._nextMessageId()
       //console.log("Previous token: " + packet.token.toString('utf8'));
-      //console.log("Length of token(Before): " + packet.token.length);
+      console.log("Length of token(Before): " + that._lastToken);
       packet.token = that._nextToken()
-      console.log("Length of token(After): " + packet.token.length);
+      console.log("Length of token(After): " + packet.token);
       //console.log("Next token: " + packet.token.toString('utf8'));
     }
 
