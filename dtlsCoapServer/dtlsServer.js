@@ -197,13 +197,12 @@ CoAPServer.prototype.listen = function(port, address, done) {
   //When DTLS initialize try to connect with peer
    this._sock.on('initialized', function(bool){
       console.log("DTLS is initialized");
-      that._sock.awaitConnection(that._opts,function(initReady){
+      that.emit('awaitingConnection');
+      that._sock.awaitConnection(that._options,function(initReady){
          console.log("DTLS awaitConnection return");
          if(initReady == false){
             console.log("FAIL in awaitConnection");
             that.emit('error','NOTHING');
-         }else{
-            that.emit('awaitingConnection');
          }
       });
       
@@ -211,7 +210,7 @@ CoAPServer.prototype.listen = function(port, address, done) {
    
    //When connected setup recv thread handler
    this._sock.on('connected', function(bool){
-      that._sock.recvfrom(handleRequest(this));
+      that._sock.recvfrom(handleRequest(that));
       
       
    });

@@ -324,7 +324,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
 
    wolfSSL_set_using_nonblock(*ssl, 1);
    
-   int ret = SSL_accept(*ssl);
+   int ret = wolfSSL_accept(*ssl);
    
    int error = wolfSSL_get_error(*ssl, 0);
     int select_ret;

@@ -13,7 +13,11 @@ server.on('error', function(err){
 
 // the default CoAP port is 5683
 server.listen(function() {
-  server.on('awaitingConnection', function(){
+  
+});
+
+server.on('awaitingConnection', function(){
+     console.log("Awainting an connection");
      //Initialize Agent, setup ctx --> ready to establish connection.
       var dtlsClientAgent = new DtlsClientAgent({'type':'dtls_client', 'eccCert':'', 'ourCert':'', 'ourKey':'', 'host':'::1', 'port':5683});
 
@@ -35,6 +39,5 @@ server.listen(function() {
          console.log('Something went wrong in agent: ' + err);
       });
   });
-})
 
 

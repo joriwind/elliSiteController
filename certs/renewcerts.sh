@@ -1,4 +1,31 @@
 #!/bin/bash
+# renewcerts.sh
+#
+# renews the following certs:
+#                       client-cert.pem
+#                       client-cert.der
+#                       client-ecc-cert.pem
+#                       client-ecc-cert.der
+#                       ca-cert.pem
+#                       ca-cert.der
+#                       server-cert.pem
+#                       server-cert.der
+#                       server-ecc-rsa.pem
+#                       server-ecc.pem
+#                       1024/client-cert.der
+#                       1024/client-cert.pem
+#
+# Needs to be added:
+#                       server-ecc-comp.pem
+# updates the following crls:
+#                       crl/cliCrl.pem
+#                       crl/crl.pem
+#                       crl/crl.revoked
+#                       crl/eccCliCRL.pem
+#                       crl/eccSrvCRL.pem
+# if HAVE_NTRU
+#                       ntru-cert.pem
+#                       ntru-key.raw
 ###############################################################################
 ######################## FUNCTIONS SECTION ####################################
 ###############################################################################
@@ -8,25 +35,39 @@ function run_renewcerts(){
     cd certs/
     echo ""
     #move the custom cnf into our working directory
-    cp renewcerts/cyassl.cnf cyassl.cnf
+    cp renewcerts/wolfssl.cnf wolfssl.cnf
 
     # To generate these all in sha1 add the flag "-sha1" on appropriate lines
     # That is all lines beginning with:  "openssl req"
 
     ############################################################
-    ########## update the self-signed client-cert.pem ##########
+    #### update the self-signed (2048-bit) client-cert.pem #####
     ############################################################
-    echo "Updating client-cert.pem"
+    echo "Updating 2048-bit client-cert.pem"
     echo ""
     #pipe the following arguments to openssl req...
     echo -e "US\nMontana\nBozeman\nwolfSSL\nProgramming\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key client-key.pem -nodes -out client-cert.csr
 
 
-    openssl x509 -req -in client-cert.csr -days 1000 -extfile cyassl.cnf -extensions cyassl_opts -signkey client-key.pem -out client-cert.pem
+    openssl x509 -req -in client-cert.csr -days 1000 -extfile wolfssl.cnf -extensions wolfssl_opts -signkey client-key.pem -out client-cert.pem
     rm client-cert.csr
 
     openssl x509 -in client-cert.pem -text > tmp.pem
     mv tmp.pem client-cert.pem
+    ############################################################
+    #### update the self-signed (1024-bit) client-cert.pem #####
+    ############################################################
+    echo "Updating 1024-bit client-cert.pem"
+    echo ""
+    #pipe the following arguments to openssl req...
+    echo -e "US\nMontana\nBozeman\nwolfSSL\nProgramming\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key \1024/client-key.pem -nodes -out \1024/client-cert.csr
+
+
+    openssl x509 -req -in \1024/client-cert.csr -days 1000 -extfile wolfssl.cnf -extensions wolfssl_opts -signkey \1024/client-key.pem -out \1024/client-cert.pem
+    rm \1024/client-cert.csr
+
+    openssl x509 -in \1024/client-cert.pem -text > \1024/tmp.pem
+    mv \1024/tmp.pem \1024/client-cert.pem
     ############################################################
     ########## update the self-signed ca-cert.pem ##############
     ############################################################
@@ -35,20 +76,20 @@ function run_renewcerts(){
     #pipe the following arguments to openssl req...
     echo -e  "US\nMontana\nBozeman\nSawtooth\nConsulting\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key ca-key.pem -nodes -out ca-cert.csr
 
-    openssl x509 -req -in ca-cert.csr -days 1000 -extfile cyassl.cnf -extensions cyassl_opts -signkey ca-key.pem -out ca-cert.pem
+    openssl x509 -req -in ca-cert.csr -days 1000 -extfile wolfssl.cnf -extensions wolfssl_opts -signkey ca-key.pem -out ca-cert.pem
     rm ca-cert.csr
 
     openssl x509 -in ca-cert.pem -text > tmp.pem
     mv tmp.pem ca-cert.pem
     ###########################################################
-    ########## update and sign server-cert.ptm ################
+    ########## update and sign server-cert.pem ################
     ###########################################################
     echo "Updating server-cert.pem"
     echo ""
     #pipe the following arguments to openssl req...
     echo -e "US\nMontana\nBozeman\nwolfSSL\nSupport\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key server-key.pem -nodes > server-req.pem
 
-    openssl x509 -req -in server-req.pem -extfile cyassl.cnf -extensions cyassl_opts -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 > server-cert.pem
+    openssl x509 -req -in server-req.pem -extfile wolfssl.cnf -extensions wolfssl_opts -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 > server-cert.pem
 
     rm server-req.pem
 
@@ -64,22 +105,67 @@ function run_renewcerts(){
     echo ""
     echo -e "US\nMontana\nBozeman\nElliptic - RSAsig\nECC-RSAsig\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key ecc-key.pem -nodes > server-ecc-req.pem
 
-    openssl x509 -req -in server-ecc-req.pem -extfile cyassl.cnf -extensions cyassl_opts -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 > server-ecc-rsa.pem
+    openssl x509 -req -in server-ecc-req.pem -extfile wolfssl.cnf -extensions wolfssl_opts -days 1000 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 > server-ecc-rsa.pem
 
     rm server-ecc-req.pem
 
     openssl x509 -in server-ecc-rsa.pem -text > tmp.pem
     mv tmp.pem server-ecc-rsa.pem
+    ############################################################
+    ####### update the self-signed client-ecc-cert.pem #########
+    ############################################################
+    echo "Updating client-ecc-cert.pem"
+    echo ""
+    #pipe the following arguments to openssl req...
+    echo -e "US\nMontana\nBozeman\nwolfSSL\nProgramming\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key ecc-client-key.pem -nodes -out client-ecc-cert.csr
+
+
+    openssl x509 -req -in client-ecc-cert.csr -days 1000 -extfile wolfssl.cnf -extensions wolfssl_opts -signkey ecc-client-key.pem -out client-ecc-cert.pem
+    rm client-ecc-cert.csr
+
+    openssl x509 -in client-ecc-cert.pem -text > tmp.pem
+    mv tmp.pem client-ecc-cert.pem
+
+    ############################################################
+    ########## update the self-signed server-ecc.pem ###########
+    ############################################################
+    echo "Updating server-ecc.pem"
+    echo ""
+    #pipe the following arguments to openssl req...
+    echo -e "US\nMontana\nBozeman\nwolfSSL\nProgramming\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key ecc-key.pem -nodes -out server-ecc.csr
+
+
+    openssl x509 -req -in server-ecc.csr -days 1000 -extfile wolfssl.cnf -extensions wolfssl_opts -signkey ecc-key.pem -out server-ecc.pem
+    rm server-ecc.csr
+
+    openssl x509 -in server-ecc.pem -text > tmp.pem
+    mv tmp.pem server-ecc.pem
+    ############################################################
+    ###### update the self-signed server-ecc-comp.pem ##########
+    ############################################################
+    echo "Updating server-ecc-comp.pem"
+    echo ""
+    #pipe the following arguments to openssl req...
+    echo -e "US\nMontana\nBozeman\nwolfSSL\nProgramming\nwww.wolfssl.com\ninfo@wolfssl.com\n.\n.\n" | openssl req -new -key ecc-key-comp.pem -nodes -out server-ecc-comp.csr
+
+
+    openssl x509 -req -in server-ecc-comp.csr -days 1000 -extfile wolfssl.cnf -extensions wolfssl_opts -signkey ecc-key-comp.pem -out server-ecc-comp.pem
+    rm server-ecc-comp.csr
+
+    openssl x509 -in server-ecc-comp.pem -text > tmp.pem
+    mv tmp.pem server-ecc-comp.pem
 
     ############################################################
     ########## make .der files from .pem files #################
     ############################################################
+    openssl x509 -inform PEM -in \1024/client-cert.pem -outform DER -out \1024/client-cert.der
     echo "Generating new ca-cert.der, client-cert.der, server-cert.der..."
     echo ""
     openssl x509 -inform PEM -in ca-cert.pem -outform DER -out ca-cert.der
     openssl x509 -inform PEM -in client-cert.pem -outform DER -out client-cert.der
     openssl x509 -inform PEM -in server-cert.pem -outform DER -out server-cert.der
-    echo "Changing directory to cyassl root..."
+    openssl x509 -inform PEM -in client-ecc-cert.pem -outform DER -out client-ecc-cert.der
+    echo "Changing directory to wolfssl root..."
     echo ""
     cd ../
     echo "Execute ./gencertbuf.pl..."
@@ -89,7 +175,7 @@ function run_renewcerts(){
     ########## generate the new crls ###########################
     ############################################################
 
-    echo "Change directory to cyassl/certs"
+    echo "Change directory to wolfssl/certs"
     echo ""
     cd certs
     echo "We are back in the certs directory"
@@ -118,12 +204,12 @@ function run_renewcerts(){
     echo "Performing final steps, cleaning up the file system..."
     echo ""
 
-    rm ../cyassl.cnf
+    rm ../wolfssl.cnf
     rm blank.index.txt
     rm index.*
     rm crlnumber*
     rm -r demoCA
-    echo "Removed ../cyassl.cnf, blank.index.txt, index.*, crlnumber*, demoCA/"
+    echo "Removed ../wolfssl.cnf, blank.index.txt, index.*, crlnumber*, demoCA/"
     echo ""
 
 }
@@ -131,7 +217,7 @@ function run_renewcerts(){
 #function for restoring a previous configure state
 function restore_config(){
     mv tmp.status config.status
-    mv tmp.options.h cyassl/options.h
+    mv tmp.options.h wolfssl/options.h
     make clean
     make -j 8
 }
@@ -149,14 +235,14 @@ function move_ntru(){
 #start in root.
 cd ../
 #if HAVE_NTRU already defined && there is no argument
-if grep HAVE_NTRU "cyassl/options.h" && [ -z "$1" ]
+if grep HAVE_NTRU "wolfssl/options.h" && [ -z "$1" ]
 then
 
     #run the function to renew the certs
     run_renewcerts
-    # run_renewcerts will end in the cyassl/certs/crl dir, backup to root.
+    # run_renewcerts will end in the wolfssl/certs/crl dir, backup to root.
     cd ../../
-    echo "changed directory to cyassl root directory."
+    echo "changed directory to wolfssl root directory."
     echo ""
 
     ############################################################
@@ -197,7 +283,7 @@ else
     echo "Saving the configure state"
     echo ""
     cp config.status tmp.status
-    cp cyassl/options.h tmp.options.h
+    cp wolfssl/options.h tmp.options.h
 
     echo "Running make clean"
     echo ""
@@ -217,15 +303,15 @@ else
     # ntru in the default location
 
     # if now defined
-    if grep HAVE_NTRU "cyassl/options.h"; then
+    if grep HAVE_NTRU "wolfssl/options.h"; then
         run_renewcerts
-        #run_renewcerts leaves us in cyassl/certs/crl, backup to root
+        #run_renewcerts leaves us in wolfssl/certs/crl, backup to root
         cd ../../
-        echo "changed directory to cyassl root directory."
+        echo "changed directory to wolfssl root directory."
         echo ""
 
         move_ntru
-             
+
         echo "ntru-certs, and ntru-key.raw have been updated"
         echo ""
 
