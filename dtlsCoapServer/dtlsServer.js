@@ -11,7 +11,7 @@
 var Dtls           = require('./Dtls')
   , net             = require('net')
   , util            = require('util')
-  , series          = require('fastseries')
+  , series          = require('./node_modules/coap/node_modules/fastseries')
   , crypto          = require('crypto')
   , events          = require('events')
   , LRU             = require('lru-cache')
@@ -176,8 +176,19 @@ CoAPServer.prototype.listen = function(port, address, done) {
  
    this._options.isServer = 1;
 
+   if(!this._options.eccCert)
+      this._options.eccCert = ''
+   if(!this._options.ourCert)
+      this._options.ourCert = ''
+   if(!this._options.ourKey)
+      this._options.ourKey = ''
+   if(!this._options.port)
+      this._options.port = 5683
+   
+   
   //this._sock = dgram.createSocket(this._options.type, handleRequest(this))
-  this._sock = Dtls.initDtls(this._options)
+  
+  this._sock = new Dtls(this._options);
 
   this._sock.on('error', function(error) {
     that.emit('error', error)
@@ -191,6 +202,8 @@ CoAPServer.prototype.listen = function(port, address, done) {
          if(initReady == false){
             console.log("FAIL in awaitConnection");
             that.emit('error','NOTHING');
+         }else{
+            that.emit('awaitingConnection');
          }
       });
       
@@ -200,7 +213,8 @@ CoAPServer.prototype.listen = function(port, address, done) {
    this._sock.on('connected', function(bool){
       that._sock.recvfrom(handleRequest(this));
       
-   }
+      
+   });
 
   this._port = port
   this._address = address

@@ -403,6 +403,7 @@ int main(int argc, char** argv)
 int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, int isServer)
 {
    int cont = 0;
+   int err = 0;
    WOLFSSL_METHOD*  method  = 0;
    //WOLFSSL_CTX* ctx = 0;
    
@@ -459,22 +460,22 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
    /* Load CA certificates */
    wolfSSL_CTX_set_verify(*ctx, SSL_VERIFY_PEER |
                                 SSL_VERIFY_FAIL_IF_NO_PEER_CERT, myVerify);
-   if (wolfSSL_CTX_load_verify_locations(*ctx,verifyCert,0) != SSL_SUCCESS) {
+   if ((err = wolfSSL_CTX_load_verify_locations(*ctx,verifyCert,0)) != SSL_SUCCESS) {
      printf("Error loading %s, please check the file.\n", verifyCert);
-     return -1;
+     return err;
    }
     
     
    //if (wolfSSL_CTX_use_certificate_chain_file(*ctx, ourCert) != SSL_SUCCESS){
-   if (wolfSSL_CTX_use_certificate_file(*ctx, ourCert, SSL_FILETYPE_PEM) != SSL_SUCCESS){
+   if ((err = wolfSSL_CTX_use_certificate_file(*ctx, ourCert, SSL_FILETYPE_PEM)) != SSL_SUCCESS){
       printf("can't load own cert file, check file and run from wolfSSL home dir\n");
-      return -1;
+      return err;
    }
 
-   if (wolfSSL_CTX_use_PrivateKey_file(*ctx, ourKey, SSL_FILETYPE_PEM)
+   if ((err = wolfSSL_CTX_use_PrivateKey_file(*ctx, ourKey, SSL_FILETYPE_PEM))
                                 != SSL_SUCCESS){
       printf("can't load own private key file, check file and run from wolfSSL home dir\n");
-      return -1;
+      return err;
    }
    
    return 1;
