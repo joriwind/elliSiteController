@@ -45,7 +45,7 @@ static int cleanup;                 /* To handle shutdown */
 /* Callback function*/
 typedef int (*callbackFt)(char* message);
 
-int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey);
+int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey);
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
 void readDTLS(WOLFSSL** ssl, callbackFt fct);
 void writeDTLS(WOLFSSL** ssl, char* message);
@@ -295,26 +295,38 @@ int main(int argc, char** argv)
 /**
  * Create WOLFSSL_CTX for communicating with dtls servers
 **/
-int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey)
+int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, int isServer)
 {
    int cont = 0;
    WOLFSSL_METHOD*  method  = 0;
    //WOLFSSL_CTX* ctx = 0;
    
-   if(strlen(eccCert) <= 1){
-      eccCert = "../certs/server-ecc.pem";
-      printf("Using standard eccCert %s\n", eccCert);
+   if(strlen(verifyCert) <= 1){
+      if(isServer){
+         verifyCert = "../certs/client-ecc-cert.pem";
+      }else{
+         verifyCert = "../certs/server-ecc.pem";
+      }
+      printf("Using standard verifyCert %s\n", verifyCert);
    }else{
-      printf("Using specific eccCert %s\n", eccCert);
+      printf("Using specific verifyCert %s\n", verifyCert);
    }
    if(strlen(ourCert) <= 1){
-      ourCert = "../certs/client-ecc-cert.pem";
+      if(isServer){
+         ourCert = "../certs/server-ecc.pem";
+      }else{
+         ourCert = "../certs/client-ecc-cert.pem";
+      }
       printf("Using standard ourCert %s\n", ourCert);
    }else{
       printf("Using specific ourCert %s\n", ourCert);
    }
    if(strlen(ourKey) <= 1){
-      ourKey = "../certs/ecc-client-key.pem";
+      if(isServer){
+         ourKey = "../certs/ecc-key.pem";
+      }else{
+         ourKey = "../certs/ecc-client-key.pem";
+      }
       printf("Using standard ourKey %s\n", ourKey);
    }else{
       printf("Using specific ourKey %s\n", ourKey);
@@ -328,7 +340,11 @@ int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey)
 
    /* Initialize WOLFSSL */
    wolfSSL_Init();
-   method = wolfDTLSv1_2_client_method();
+   if(isServer){
+      method = wolfDTLSv1_2_server_method();
+   }else{
+      method = wolfDTLSv1_2_client_method();
+   }
    /* Set ctx to DTLS 1.2 */
    if ((*ctx = wolfSSL_CTX_new(method)) == NULL) {
      printf("wolfSSL_CTX_new error.\n");
@@ -336,22 +352,23 @@ int initDTLS(WOLFSSL_CTX** ctx, char* eccCert, char* ourCert, char* ourKey)
    }
 
    /* Load CA certificates */
-   wolfSSL_CTX_set_verify(*ctx, SSL_VERIFY_PEER, myVerify);
-   if (wolfSSL_CTX_load_verify_locations(*ctx,eccCert,0) != SSL_SUCCESS) {
-     printf("Error loading %s, please check the file.\n", eccCert);
+   wolfSSL_CTX_set_verify(*ctx, SSL_VERIFY_PEER |
+                                SSL_VERIFY_FAIL_IF_NO_PEER_CERT, myVerify);
+   if (wolfSSL_CTX_load_verify_locations(*ctx,verifyCert,0) != SSL_SUCCESS) {
+     printf("Error loading %s, please check the file.\n", verifyCert);
      return -1;
    }
     
     
    //if (wolfSSL_CTX_use_certificate_chain_file(*ctx, ourCert) != SSL_SUCCESS){
    if (wolfSSL_CTX_use_certificate_file(*ctx, ourCert, SSL_FILETYPE_PEM) != SSL_SUCCESS){
-      printf("can't load client cert file, check file and run from wolfSSL home dir\n");
+      printf("can't load own cert file, check file and run from wolfSSL home dir\n");
       return -1;
    }
 
    if (wolfSSL_CTX_use_PrivateKey_file(*ctx, ourKey, SSL_FILETYPE_PEM)
                                 != SSL_SUCCESS){
-      printf("can't load client private key file, check file and run from wolfSSL home dir\n");
+      printf("can't load own private key file, check file and run from wolfSSL home dir\n");
       return -1;
    }
    
