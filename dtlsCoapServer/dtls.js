@@ -103,12 +103,9 @@ Dtls.prototype.recvfrom = function(callback){
    dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [ref.refType(ref.types.char)], 
                             function (buffer) {  
       var message = buffer.readCString(buffer,0);
-      console.log("bufRCS: " + message);
-      //callback(message);
       var buff = new Buffer(message);
       callback(buff); //send back buffer
       //dtlsnew.read();
-      console.log("callback worked")
    }), function(err, res){
       return;
    });
@@ -116,7 +113,6 @@ Dtls.prototype.recvfrom = function(callback){
 }
 
 Dtls.prototype.sendto = function(message){
-   console.log("Writing to peer message: " + message);
    dtls_interface.writeDTLS.async(this.WOLFSSL, message, function(err, res){
       return;
    });
@@ -125,7 +121,7 @@ Dtls.prototype.sendto = function(message){
 
 
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
-   console.log("Send message\n");
+   console.log("Send message");
    this.sendto(message.toString()); //message is of type: Buffer
    var err = 0;
    if(typeof ack === 'function'){
@@ -134,7 +130,7 @@ Dtls.prototype.send = function(message, number, msglen, port, address, ack){
 }
 
 Dtls.prototype.send = function(message, number, msglen, port, address){
-   console.log("Send message\n");
+   console.log("Send message");
    this.sendto(message.toString()); //message is of type: Buffer
    
 }
