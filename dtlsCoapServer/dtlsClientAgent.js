@@ -22,7 +22,7 @@ var bl              = require('bl')
   , parseBlock2     = require('./node_modules/coap/lib/helpers').parseBlock2
   , createBlock2    = require('./node_modules/coap/lib/helpers').createBlock2
   , getOption       = require('./node_modules/coap/lib/helpers').getOption
-  , maxToken        = Math.pow(2, 26) //First it was 32 but coap-packet max length = 8 --> 2^26
+  , maxToken        = Math.pow(2, 32) //First it was 32 but coap-packet max length = 8 --> 2^26
   , maxMessageId    = Math.pow(2, 16)
 
 function Agent(opts) {
@@ -89,7 +89,7 @@ Agent.prototype._init = function connectSock(callback) {
    //When connected setup recv thread handler
    this._sock.on('connected', function(bool){
       that._sock.recvfrom(function(msg){
-         console.log("Message received in Agent: " + msg+ "\n");
+         //console.log("Message received in Agent: " + msg+ "\n");
             //that._sock.write("Hello testin after log!!");
          var packet
          , message
@@ -136,7 +136,7 @@ Agent.prototype._init = function connectSock(callback) {
 
    this._lastToken = Math.floor(Math.random() * (maxToken - 1))
    this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
-   console.log("Last token init: " + this._lastToken);
+   //console.log("Last token init: " + this._lastToken);
    this._closing = false
    this._msgInFlight = 0
    this._requests = 0
@@ -326,9 +326,7 @@ Agent.prototype._nextMessageId = function nextToken() {
 Agent.prototype.request = function request(url) {
    console.log("Start request");
   this._init()
-  console.log("New request");
-  console.log("_last token: " + this._lastToken);
-
+  
   var req
     , response
     , options = url.options || url.headers
@@ -344,11 +342,7 @@ Agent.prototype.request = function request(url) {
 
     if (!(packet.ack || packet.reset)) {
       packet.messageId = that._nextMessageId()
-      //console.log("Previous token: " + packet.token.toString('utf8'));
-      console.log("Length of token(Before): " + that._lastToken);
       packet.token = that._nextToken()
-      console.log("Length of token(After): " + packet.token);
-      //console.log("Next token: " + packet.token.toString('utf8'));
     }
 
     try {
@@ -360,11 +354,9 @@ Agent.prototype.request = function request(url) {
 
     that._msgIdToReq[packet.messageId] = req
     that._tkToReq[that._lastToken] = req
-   console.log("line 356");
 
     req.sender.send(buf)
     
-      //this._listen();
   })
 
   req.sender = new RetrySend(this._sock, url.port, url.hostname || url.host)

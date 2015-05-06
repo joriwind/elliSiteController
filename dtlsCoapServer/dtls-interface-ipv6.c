@@ -382,14 +382,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
 
    
    int ret = wolfSSL_accept(*ssl);
-   
-   if(ret != SSL_SUCCESS){
-      int err = SSL_get_error(ssl, 0);
-     char buffer[CYASSL_MAX_ERROR_SZ];
-     printf("error = %d, %s\n", err, wolfSSL_ERR_error_string(err, buffer));
-     printf("SSL_accept failed\n");
-   }
-   /*
+      
    int error = wolfSSL_get_error(*ssl, 0);
     int select_ret;
 
@@ -425,7 +418,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
     if (ret != SSL_SUCCESS){
       printf("SSL_accept failed\n");
       return error;
-    }*/
+    }
     
    printf("Connection established with client, returning WOLFSSL* object\n");
    return 1;

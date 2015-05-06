@@ -1,5 +1,4 @@
 var coap        = require('coap');
-var DtlsClientAgent = require('./dtlsClientAgent');
 var Server  = require('./dtlsServer');
 var server      = new Server({ type: 'udp6' })
 
