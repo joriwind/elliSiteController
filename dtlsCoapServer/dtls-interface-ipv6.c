@@ -203,6 +203,7 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
       freeaddrinfo(answer);
    }
    
+   
    wolfSSL_dtls_set_peer(*ssl, &servAddr, sizeof(servAddr));
    
    /* Create a UDP/IP client socket, IPv6 */
@@ -210,6 +211,7 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
       printf("Cannot create socket.\n");
       return -1;
    }
+   printf("Searching for server, ip: %s, port: %i, socket: %i\n", host, port, sc_fd);
    
    wolfSSL_set_fd(*ssl, sc_fd);
    printf("Socket allocated\n");
@@ -229,6 +231,7 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    int ret = wolfSSL_connect(*ssl);
    
    int error = wolfSSL_get_error(*ssl, 0);
+   printf("Error: %i\n", error);
    int select_ret;
    
    while (ret != SSL_SUCCESS && (error == SSL_ERROR_WANT_READ ||
@@ -242,10 +245,12 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
       }
       currTimeout = wolfSSL_dtls_get_current_timeout(*ssl);
       select_ret = tcp_select(sc_fd, currTimeout);
+         printf("Select_ret: %i\n", select_ret);
       
       if ((select_ret == TEST_RECV_READY) || (select_ret == TEST_ERROR_READY)) {
          ret = wolfSSL_connect(*ssl);
          error = wolfSSL_get_error(*ssl, 0);
+         printf("Error: %i\n", error);
       }
       else if (select_ret == TEST_TIMEOUT && !wolfSSL_dtls(*ssl)) {
          error = SSL_ERROR_WANT_READ;
@@ -256,6 +261,8 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    }
    if (ret != SSL_SUCCESS){
       printf("SSL_connect failed\n");
+      printf("Error: %i\n", error);
+      printf("Ret: %i\n", ret);
       return error;
    }
    
@@ -298,7 +305,32 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
    memset((char *)&clientAddr, 0, sizeof(clientAddr));
    clientAddr.sin6_family = AF_INET6;
    clientAddr.sin6_port = htons(port);
-   clientAddr.sin6_addr = in6addr_any;
+   char* host = "::1";
+   if (host == INADDR_ANY)
+        clientAddr.sin6_addr = in6addr_any;
+   else {
+      struct addrinfo  hints;
+      struct addrinfo* answer = NULL;
+      int    ret;
+      char   strPort[80];
+
+      memset(&hints, 0, sizeof(hints));
+
+      hints.ai_family   = AF_INET6;
+      hints.ai_socktype = SOCK_DGRAM;
+      hints.ai_protocol = IPPROTO_UDP;
+
+      sprintf(strPort, "%d", port);
+      strPort[79] = '\0';
+
+      ret = getaddrinfo(host, strPort, &hints, &answer);
+      if (ret < 0 || answer == NULL){
+         printf("Getaddrinfo failed\n");
+      }
+
+      memcpy(&clientAddr, answer->ai_addr, answer->ai_addrlen);
+      freeaddrinfo(answer);
+   }
    
    
    wolfSSL_dtls_set_peer(*ssl, &clientAddr, sizeof(clientAddr));
@@ -318,6 +350,9 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
    if (flags < 0){
       printf("fcntl set failed\n");
    }
+   
+   printf("Waiting for client on, ip: %s, port: %i, socket: %i\n", 
+               host, port, sc_fd);
    
    wolfSSL_set_fd(*ssl, sc_fd);
    printf("Socket allocated\n");
@@ -340,7 +375,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
 
         currTimeout = wolfSSL_dtls_get_current_timeout(*ssl);
         select_ret = tcp_select(sc_fd, currTimeout);
-
+         
         if ((select_ret == TEST_RECV_READY) ||
                                         (select_ret == TEST_ERROR_READY)) {
             ret = wolfSSL_accept(*ssl);
