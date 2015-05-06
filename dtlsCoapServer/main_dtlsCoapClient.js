@@ -13,7 +13,8 @@ dtlsClientAgent.on('connected', function(res){
       console.log("Something went wrong in request: " + err);
    });
    req.on('response', function(res) {
-      res.pipe(process.stdout)
+      console.log("Response of server: " + res);
+      //res.pipe(process.stdout)
    })
    req.end()
 });

@@ -129,8 +129,8 @@ CoAPServer.prototype._sendReverseProxied = function(packet, rsinfo, callback) {
 
 function handleRequest(server) {
   //return function (msg, rsinfo) {
-   return function (msg) {
-    var rsinfo = '';//DTLS connection
+   return function (msg, rsinfo) {
+    //var rsinfo = '';//DTLS connection
     var request = {
         raw: msg,
         rsinfo: rsinfo,

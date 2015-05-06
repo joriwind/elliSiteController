@@ -88,36 +88,18 @@ Agent.prototype._init = function connectSock(callback) {
    
    //When connected setup recv thread handler
    this._sock.on('connected', function(bool){
-      that._sock.recvfrom(function(msg){
-         //console.log("Message received in Agent: " + msg+ "\n");
-            //that._sock.write("Hello testin after log!!");
+      that._sock.recvfrom(function(msg, rsinfo){
          var packet
-         , message
-         , outSocket;
-         var rsinfo = {};
-         try {
+            , message
+            , outSocket
+         //var rsinfo = {'port':that._opts.port, 'address': that._opts.host};
+
+          try {
             packet = parse(msg)
           } catch(err) {
-             console.log("Error in parse message: " + err+ "\n");
-             try{
-                  message = generate({ code: '5.00', payload: new Buffer('Unable to parse packet') })
-                  console.log("Generated: 'Unable to parse packet' message: " + message+ "\n");
-             }catch(err){
-               console.log("Error in generate message: " + err + "\n");
-                
-             }
-             /*
-             console.log("Ready to send: " + message.toString('utf8'));
-             var buff = new Buffer(message.toString());
-             try{
-                var newMsg = parse(buff);
-             }catch(err){
-               console.log("Error in parse2 message: " + err);
-             }*/
-            
+            message = generate({ code: '5.00', payload: new Buffer('Unable to parse packet') })
             that._sock.send(message, 0, message.length,
                             rsinfo.port, rsinfo.address)
-            
             return
           }
             
@@ -165,9 +147,8 @@ Agent.prototype._doClose = function() {
 }
 
 Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
-   console.log("Handle message");
-   try{
-      var packet = parse(msg)
+   console.log("handle");
+  var packet = parse(msg)
     , buf
     , response
     , that = this
@@ -180,10 +161,8 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
         if (that._closing && that._msgInFlight === 0) {
           that._doClose()
         }
-   };}catch(err){
-      console.log("Error in _handle: "+err);
-   }
-   
+      }
+
   if (packet.confirmable) {
     buf = generate({
         code: '0.00'

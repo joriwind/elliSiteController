@@ -47,7 +47,7 @@ typedef int (*callbackFt)(char* message);
 
 int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, int isServer);
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
-int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port);
+int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port, char** addressClient, int* portClient);
 void readDTLS(WOLFSSL** ssl, callbackFt fct);
 void writeDTLS(WOLFSSL** ssl, char* message);
 void closeDTLS();
@@ -271,27 +271,28 @@ int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port)
    return 1;
 }
 
-int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
+int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port, char** addressClient, int* portClient){
    if(*ctx == NULL){
       printf("Need to init ctx first\n");
       return -1;
    }else{
       printf("Ctx check passed \n");
    }
-   
+   /*
    if(*ssl == NULL){
       printf("No ssl object available\n");
       WOLFSSL* sslnew;
       *ssl = sslnew;
    }else{
       printf("Ssl check passed \n");
-   }
+   }*/
    
    int     on = 1;
    int     res = 1;
    int     sc_fd = 0;            /* Initialize our socket */
    int     len = sizeof(on);
    int     cont;
+   int      ret;
 
    //WOLFSSL* ssl = NULL;              /* Initialize ssl object */
    struct sockaddr_in6 clientAddr;     /* our server's address */
@@ -361,6 +362,35 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
     }else{
         printf("recvfrom failed\n");
     }
+    char buffer[INET6_ADDRSTRLEN];
+    
+    const char* result = inet_ntop(AF_INET6,&cliaddr,buffer,sizeof(buffer));
+    
+    printf("Client connected from: %s : %i",result, cliaddr.sin6_port);
+    
+    *addressClient = result;
+    *portClient = (int)cliaddr.sin6_port;
+    
+    //set and get peer does not function, produces segfault on get_peer
+    /*if((ret = wolfSSL_dtls_set_peer(*ssl, &cliaddr, sizeof(cliaddr))) != SSL_SUCCESS){
+      printf("Error in set peer: %i", ret);
+    }else{
+       printf("Try to get peer\n");
+      struct sockaddr_in6* addr;
+      ret = wolfSSL_dtls_get_peer(*ssl, addr, sizeof(addr));
+      if (ret != SSL_SUCCESS) {
+         printf("Error in readDTLS: could not retrieve peer\n");
+      }else{
+         printf("Derving text from IP address\n");
+         char buffer[INET6_ADDRSTRLEN];
+         const char* result=inet_ntop(AF_INET,&addr,buffer,sizeof(buffer));
+         if (result==0) {
+            printf("failed to convert address to string (errno=%d)\n",errno);
+         }else{
+            printf("Connected peer: addr: %s\n", result);
+         }
+      }
+    }*/
    
    //set non blocking socket and wolfssl
    wolfSSL_set_using_nonblock(*ssl, 1);
@@ -381,7 +411,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
    printf("Socket allocated\n");
 
    
-   int ret = wolfSSL_accept(*ssl);
+   ret = wolfSSL_accept(*ssl);
       
    int error = wolfSSL_get_error(*ssl, 0);
     int select_ret;
@@ -424,6 +454,10 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
    return 1;
 }
 
+void processData(char* message, char* addr, int port){
+   printf("Process data: message: %s, addr: %s, port: %i\n", message, addr,port);
+}
+
 int main(int argc, char** argv)
 {
    /* cont short for "continue?", Loc short for "location" */    
@@ -433,24 +467,34 @@ int main(int argc, char** argv)
    char        ourKey[] = "../certs/ecc-client-key.pem";
    WOLFSSL_CTX* ctx = 0;
    WOLFSSL* ssl = 0;
+   
+   char** client_addr;
+   int* client_port;
 
    if(initDTLS(&ctx,"","","", 0) < 0){
       printf("Unable to initialize ctx\n");
       return -1;
    }
-    
+   /*
    if(connectToServer(&ssl,&ctx,"::1",5683) < 0){
+      printf("Unable to initialize ssl\n");
+      return -1;
+   }*/
+   if(awaitConnection(&ssl, &ctx, 5683, client_addr, client_port) < 0){
       printf("Unable to initialize ssl\n");
       return -1;
    }
    
-   writeDTLS(&ssl, "Hello this is a test\n");
-   //readDTLS(ssl, ) inplement test callback!?
+   //writeDTLS(&ssl, "Hello this is a test\n");
+   readDTLS(&ssl, processData); //inplement test callback!?
    
    closeDTLS();
 
    return 0;
 }
+
+
+
 
 
 
@@ -547,8 +591,8 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
    int recvLen;
    int readWriteErr;
    printf("Starting to read\n");
-   //TODO: fix error, ssl should have been given correctly to read
-   /* Begin: Reply to the client */
+      
+   
    do {
       recvLen = wolfSSL_read(*ssl, buff, sizeof(buff)-1);
    
@@ -575,7 +619,7 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
       /* End do-while read */
 
       if (recvLen > 0) {
-         buff[recvLen] = 0;
+                  
          printf("I heard this:\"%s\"\n", buff);
          (*fct)(buff);
       } 
@@ -605,7 +649,7 @@ void writeDTLS(WOLFSSL** ssl, char* message){
           cleanup = 1;
           return;
       }
-      printf("Reply sent:\"%s\" with length: %i \n", message, sizeof(message));
+      //printf("Reply sent:\"%s\" with length: %i \n", message, sizeof(message));
    }while(readWriteErr == SSL_ERROR_WANT_WRITE && cleanup != 1);
    /* End do-while write */
 

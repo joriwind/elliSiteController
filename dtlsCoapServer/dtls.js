@@ -30,12 +30,13 @@ var WOLFSSL_CTXPtr = ref.refType(WOLFSSL_CTX);
 var WOLFSSL = ref.types.void;// we don't know what the layout of "WOLFSSL" looks like
 var WOLFSSLPtr = ref.refType(WOLFSSL);
 
+
 var argument = "Hello to JavaScript";
 
 var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
   'initDTLS': [ 'int', [WOLFSSL_CTXPtr, 'string','string','string', 'int' ] ],
   'connectToServer': ['int', [WOLFSSLPtr, WOLFSSL_CTXPtr, 'string', 'int']],
-  'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int']],
+  'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int', 'pointer', 'pointer']],
   'readDTLS': ['void',[WOLFSSLPtr, 'pointer']],
   'writeDTLS': ['void',[WOLFSSLPtr,'string']],
   'closeDTLS': ['void',[]],
@@ -83,15 +84,19 @@ Dtls.prototype.connectToServer = function(arg, callback){
 
 Dtls.prototype.awaitConnection = function(arg, callback){
    console.log("NODEJS: setting up wait...");
-   
+   this.client_addrPtr = ref.alloc(ref.refType(ref.refType(ref.types.char)));
+   this.client_portPtr = ref.alloc(ref.refType(ref.types.int));
    this.WOLFSSL = ref.alloc(WOLFSSLPtr);
    var that = this;
-   dtls_interface.awaitConnection.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.port, function(err, res){
+   dtls_interface.awaitConnection.async(this.WOLFSSL, this.WOLFSSL_CTX, arg.port, this.client_addrPtr, this.client_portPtr, function(err, res){
       if(res <0){
          that.emit('error',res);
          callback(false);
       }else{
-         console.log("Connection established with client ");
+         that.client_addr = that.client_addrPtr.deref().readCString(that.client_addrPtr.deref(),0);
+         that.client_portPtr.type = ref.types.int
+         that.client_port = that.client_portPtr.deref();
+         console.log("Connection established with client: " + that.client_addr + " : " + that.client_port);
          that.emit('connected',true);
          callback(true);
       }
@@ -100,11 +105,13 @@ Dtls.prototype.awaitConnection = function(arg, callback){
 
 Dtls.prototype.recvfrom = function(callback){
    console.log("Starting recvfrom thread");
+   var that = this;
    dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [ref.refType(ref.types.char)], 
                             function (buffer) {  
       var message = buffer.readCString(buffer,0);
       var buff = new Buffer(message);
-      callback(buff); //send back buffer
+      var rsinfo = {'address':that.client_addr, 'port':that.client_port};
+      callback(buff, rsinfo); //send back buffer
       //dtlsnew.read();
    }), function(err, res){
       return;
@@ -136,8 +143,10 @@ Dtls.prototype.send = function(message, number, msglen, port, address){
 }
 
 Dtls.prototype.address = function(){
-   //TODO: make this work
-   return 5;
+   if(!this.client_addr){
+      return "::1";
+   }
+   return this.client_addr;
 }
 
 Dtls.prototype.close = function(){
