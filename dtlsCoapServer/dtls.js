@@ -129,7 +129,7 @@ Dtls.prototype.sendto = function(message){
 
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
    console.log("Send message");
-   this.sendto(message.toString()); //message is of type: Buffer
+   this.sendto(message); //message is of type: Buffer
    var err = 0;
    if(typeof ack === 'function'){
       ack(err);
@@ -138,11 +138,12 @@ Dtls.prototype.send = function(message, number, msglen, port, address, ack){
 
 Dtls.prototype.send = function(message, number, msglen, port, address){
    console.log("Send message");
-   this.sendto(message.toString()); //message is of type: Buffer
+   this.sendto(message); //message is of type: Buffer
    
 }
 
 Dtls.prototype.address = function(){
+   return 0;
    if(!this.client_addr){
       return "::1";
    }
