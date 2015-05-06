@@ -22,7 +22,7 @@ var bl              = require('bl')
   , parseBlock2     = require('./node_modules/coap/lib/helpers').parseBlock2
   , createBlock2    = require('./node_modules/coap/lib/helpers').createBlock2
   , getOption       = require('./node_modules/coap/lib/helpers').getOption
-  , maxToken        = Math.pow(2, 32) //First it was 32 but coap-packet max length = 8 --> 2^26
+  , maxToken        = Math.pow(2, 26) //First it was 32 but coap-packet max length = 8 --> 2^26
   , maxMessageId    = Math.pow(2, 16)
 
 function Agent(opts) {
