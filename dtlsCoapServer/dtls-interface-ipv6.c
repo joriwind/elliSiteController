@@ -333,7 +333,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
    }
    
    
-   wolfSSL_dtls_set_peer(*ssl, &clientAddr, sizeof(clientAddr));
+   //wolfSSL_dtls_set_peer(*ssl, &clientAddr, sizeof(clientAddr));
    
    /* Create a UDP/IP client socket, IPv6 */
    if ((sc_fd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0 ) {
@@ -341,7 +341,30 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
       return -1;
    }
    
-   //set non blocking socket
+   //bind port
+   if (bind(sc_fd, (const struct sockaddr*)&clientAddr, sizeof(clientAddr)) != 0)
+        printf("bind failed\n");
+   
+   
+   struct sockaddr_in6 cliaddr;
+   byte          b[1500];
+   int           n;
+   socklen_t     clieaddr_len = sizeof(cliaddr);
+   
+   //UDP read_connect
+   n = (int)recvfrom(sc_fd, (char*)b, sizeof(b), MSG_PEEK,
+                      (struct sockaddr*)&cliaddr, &clieaddr_len);
+    if (n > 0) {
+        if (connect(sc_fd, (const struct sockaddr*)&cliaddr,
+                    sizeof(cliaddr)) != 0)
+            printf("udp connect failed\n");
+    }else{
+        printf("recvfrom failed\n");
+    }
+   
+   //set non blocking socket and wolfssl
+   wolfSSL_set_using_nonblock(*ssl, 1);
+   
    int flags = fcntl(sc_fd, F_GETFL, 0);
    if (flags < 0){
       printf("fcntl get failed\n");
@@ -357,10 +380,16 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
    wolfSSL_set_fd(*ssl, sc_fd);
    printf("Socket allocated\n");
 
-   wolfSSL_set_using_nonblock(*ssl, 1);
    
    int ret = wolfSSL_accept(*ssl);
    
+   if(ret != SSL_SUCCESS){
+      int err = SSL_get_error(ssl, 0);
+     char buffer[CYASSL_MAX_ERROR_SZ];
+     printf("error = %d, %s\n", err, wolfSSL_ERR_error_string(err, buffer));
+     printf("SSL_accept failed\n");
+   }
+   /*
    int error = wolfSSL_get_error(*ssl, 0);
     int select_ret;
 
@@ -396,7 +425,7 @@ int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port){
     if (ret != SSL_SUCCESS){
       printf("SSL_accept failed\n");
       return error;
-    }
+    }*/
     
    printf("Connection established with client, returning WOLFSSL* object\n");
    return 1;

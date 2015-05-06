@@ -210,6 +210,7 @@ CoAPServer.prototype.listen = function(port, address, done) {
    
    //When connected setup recv thread handler
    this._sock.on('connected', function(bool){
+      console.log("Starting recv thread");
       that._sock.recvfrom(handleRequest(that));
       
       

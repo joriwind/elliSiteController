@@ -82,7 +82,7 @@ Dtls.prototype.connectToServer = function(arg, callback){
 }
 
 Dtls.prototype.awaitConnection = function(arg, callback){
-   console.log("NODEJS: connecting to server...");
+   console.log("NODEJS: setting up wait...");
    
    this.WOLFSSL = ref.alloc(WOLFSSLPtr);
    var that = this;
@@ -99,6 +99,7 @@ Dtls.prototype.awaitConnection = function(arg, callback){
 }
 
 Dtls.prototype.recvfrom = function(callback){
+   console.log("Starting recvfrom thread");
    dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [ref.refType(ref.types.char)], 
                             function (buffer) {  
       var message = buffer.readCString(buffer,0);
