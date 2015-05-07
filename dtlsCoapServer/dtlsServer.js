@@ -239,6 +239,8 @@ CoAPServer.prototype.close = function(done) {
 }
 
 CoAPServer.prototype._handle = function(packet, rsinfo) {
+   
+   console.log("Packet received from client: " + JSON.stringify(packet));
 
   var sock      = this._sock
     , lru       = this._lru

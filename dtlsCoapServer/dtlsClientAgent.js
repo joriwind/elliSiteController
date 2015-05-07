@@ -310,6 +310,21 @@ Agent.prototype.request = function request(url) {
 
     try {
       buf = generate(packet)
+      
+      var test = parse(buf);
+      console.log("////////TEST////////");
+      console.log("Buffer: " + buf);
+      console.log("Initial packet send to server: " + JSON.stringify(test));
+      /*var changedbuf = buf.toString();
+      var newbuf = new Buffer(changedbuf);
+      var changedtest = parse(newbuf);
+      console.log("Buffer(new): " + newbuf);
+      console.log("After change packet send to server: " + JSON.stringify(changedtest));
+      
+      if(newbuf == buf){
+         console.log("????????????????REALY THE SAME???????????????????????");
+      }*/
+      
     } catch(err) {
       req.sender.reset()
       return req.emit('error', err)

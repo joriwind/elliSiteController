@@ -29,6 +29,7 @@ var WOLFSSL_CTX = ref.types.void; // we don't know what the layout of "WOLFSSL_C
 var WOLFSSL_CTXPtr = ref.refType(WOLFSSL_CTX);
 var WOLFSSL = ref.types.void;// we don't know what the layout of "WOLFSSL" looks like
 var WOLFSSLPtr = ref.refType(WOLFSSL);
+var MessagePtr = ref.refType(ref.types.char);
 
 
 var argument = "Hello to JavaScript";
@@ -38,7 +39,7 @@ var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
   'connectToServer': ['int', [WOLFSSLPtr, WOLFSSL_CTXPtr, 'string', 'int']],
   'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int', 'pointer', 'pointer']],
   'readDTLS': ['void',[WOLFSSLPtr, 'pointer']],
-  'writeDTLS': ['void',[WOLFSSLPtr,'string']],
+  'writeDTLS': ['void',[WOLFSSLPtr,MessagePtr]],
   'closeDTLS': ['void',[]],
   'getTypeWOLFSSL_CTX': [WOLFSSL_CTXPtr, []],
   'getTypeWOLFSSL': [WOLFSSLPtr, []]
@@ -106,14 +107,17 @@ Dtls.prototype.awaitConnection = function(arg, callback){
 Dtls.prototype.recvfrom = function(callback){
    console.log("Starting recvfrom thread");
    var that = this;
-   dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', ['string', ref.types.int], 
+   dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [MessagePtr, ref.types.int], 
                             function (buffer, rcvlen) {  
       //var message = buffer.readCString(buffer,0);
       //var buff = new Buffer(message);
-      //var buff = new Buffer(buffer.toString('utf8', 0, rcvlen));
-      var buff = new Buffer(buffer);
+      
+      var buff = new Buffer(buffer.toString('utf8', 0, rcvlen));
+      console.log("Buffer recv: " + buffer);
+      console.log("Buffer after recv: " + buff);
+      //var buff = new Buffer(buffer);
       var rsinfo = {'address':that.client_addr, 'port':that.client_port};
-      callback(buff, rsinfo); //send back buffer
+      callback(buffer, rsinfo); //send back buffer
       //dtlsnew.read();
    }), function(err, res){
       return;
@@ -131,7 +135,8 @@ Dtls.prototype.sendto = function(message){
 
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
    console.log("Send message");
-   this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
+   //this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
+   this.sendto(message);
    var err = 0;
    if(typeof ack === 'function'){
       ack(err);
@@ -142,8 +147,8 @@ Dtls.prototype.send = function(message, number, msglen, port, address){
    //console.log("Is ascii encoding: " + message.isEncoding('ascii'));
    //console.log("Is utf8 encoding: " + message.isEncoding('utf8'));
    console.log("Send message");
-   this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
-   
+   //this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
+   this.sendto(message);
 }
 
 Dtls.prototype.address = function(){
