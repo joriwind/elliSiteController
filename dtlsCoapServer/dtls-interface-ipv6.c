@@ -43,7 +43,7 @@
 static int cleanup;                 /* To handle shutdown */
 
 /* Callback function*/
-typedef int (*callbackFt)(char* message);
+typedef int (*callbackFt)(char* message, int msglen);
 
 int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, int isServer);
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
@@ -621,7 +621,7 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
       if (recvLen > 0) {
                   
          printf("I heard this:\"%s\"\n", buff);
-         (*fct)(buff);
+         (*fct)(buff, recvLen);
       } 
       else {
          //printf("Connection Timed Out.\n");

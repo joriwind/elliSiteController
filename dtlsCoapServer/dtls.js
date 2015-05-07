@@ -130,7 +130,7 @@ Dtls.prototype.sendto = function(message){
 
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
    console.log("Send message");
-   this.sendto(message.toString('utf8')); //message is of type: Buffer
+   this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
    var err = 0;
    if(typeof ack === 'function'){
       ack(err);
@@ -141,16 +141,16 @@ Dtls.prototype.send = function(message, number, msglen, port, address){
    //console.log("Is ascii encoding: " + message.isEncoding('ascii'));
    //console.log("Is utf8 encoding: " + message.isEncoding('utf8'));
    console.log("Send message");
-   this.sendto(message.toString('utf8')); //message is of type: Buffer
+   this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
    
 }
 
 Dtls.prototype.address = function(){
-   return 0;
+   
    if(!this.client_addr){
-      return "::1";
+      return {port: 5683, family: 'IPv6', address: "::1"};
    }
-   return this.client_addr;
+   return {port: this.client_port, family: 'IPv6', address: this.client_addr};
 }
 
 Dtls.prototype.close = function(){

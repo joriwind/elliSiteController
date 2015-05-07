@@ -4,6 +4,7 @@ var server      = new Server({ type: 'udp6' })
 
 server.on('request', function(req, res) {
   console.log("Received message from client: " + req.url.split('/')[1]);
+  console.log("Message tostring: " + req.url.toString());
   res.end('Hello ' + req.url.split('/')[1] + '\n')
 })
 
