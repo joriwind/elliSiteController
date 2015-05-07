@@ -27,21 +27,16 @@ var bl              = require('bl')
 
 function Agent(opts) {
    if (!(this instanceof Agent))
-      return new Agent()
+    return new Agent()
 
+  if (!opts)
+    opts = {}
 
-   if (!opts)
-      opts = {}
+  if (!opts.type)
+    opts.type = 'udp4'
+
+  
    
-   if (!opts.type)
-    opts.type = 'udp6'
-   /*
-   if (!this._sock)
-      dtls = new Dtls();
-      this._sock = dtls.createServer("",function(bool){
-         return bool;
-      });*/
-
    if(!opts.eccCert)
       opts.eccCert = ''
    if(!opts.ourCert)
@@ -54,27 +49,20 @@ function Agent(opts) {
       opts.port = 5683
 
    this._opts = opts
-   
-   this._init();
-   
 
+  this._init()
 }
 
 util.inherits(Agent, events.EventEmitter)
 
-Agent.prototype._init = function connectSock(callback) {
-   if (this._sock){
-      return;
-   }
-   console.log("dtlsAgent: Init");
-   var that = this;
-   this._sock = new Dtls(this._opts);
-   
-   //Catch errors of DTLS
-   this._sock.on('error', function(err){
-      console.log("Error in dtls: " + err);
-      that.emit('error', err);
-   });
+Agent.prototype._init = function initSock() {
+  if (this._sock)
+    return
+
+  var that = this
+  
+  this._sock = new Dtls(this._opts);
+  
    
    //When DTLS initialize try to connect with peer
    this._sock.on('initialized', function(bool){
@@ -95,7 +83,6 @@ Agent.prototype._init = function connectSock(callback) {
          var packet
             , message
             , outSocket
-         //var rsinfo = {'port':that._opts.port, 'address': that._opts.host};
 
           try {
             packet = parse(msg)
@@ -105,7 +92,6 @@ Agent.prototype._init = function connectSock(callback) {
                             rsinfo.port, rsinfo.address)
             return
           }
-            
 
           outSocket = that._sock.address();
           that._handle(msg, rsinfo, outSocket)
@@ -115,30 +101,35 @@ Agent.prototype._init = function connectSock(callback) {
       console.log("dtlsAgent: Init complete");
       that.emit('connected', true);
    });
+  
+  
+  //Catch errors of DTLS
+   this._sock.on('error', function(err){
+      console.log("Error in dtls: " + err);
+      that.emit('error', err);
+   });
    
-   this._msgIdToReq = {}
-   this._tkToReq = {}
+  this._msgIdToReq = {}
+  this._tkToReq = {}
 
-   this._lastToken = Math.floor(Math.random() * (maxToken - 1))
-   this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
-   //console.log("Last token init: " + this._lastToken);
-   this._closing = false
-   this._msgInFlight = 0
-   this._requests = 0
-   
+  this._lastToken = Math.floor(Math.random() * (maxToken - 1))
+  this._lastMessageId = Math.floor(Math.random() * (maxMessageId - 1))
+
+  this._closing = false
+  this._msgInFlight = 0
+  this._requests = 0
 }
 
-
 Agent.prototype._cleanUp = function cleanUp() {
-   if (--this._requests !== 0)
+  if (--this._requests !== 0)
     return
 
-   this._closing = true
+  this._closing = true
 
-   if (this._msgInFlight !== 0)
+  if (this._msgInFlight !== 0)
     return
 
-   this._doClose()
+  this._doClose()
 }
 
 Agent.prototype._doClose = function() {
@@ -150,7 +141,6 @@ Agent.prototype._doClose = function() {
 }
 
 Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
-   console.log("handle");
   var packet = parse(msg)
     , buf
     , response
@@ -165,11 +155,8 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
           that._doClose()
         }
       }
-   console.log("Client handle: parsed");
-   console.log("Packet from server: " + JSON.stringify(packet));
 
   if (packet.confirmable) {
-     console.log("Client handle: confirmable package");
     buf = generate({
         code: '0.00'
       , ack: true
@@ -181,20 +168,17 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
   }
 
   if (!req) {
-     console.log("Client handle: not req");
     if (packet.token.length == 4) {
       req = this._tkToReq[packet.token.readUInt32BE(0)]
     }
-   
+
     if (packet.ack && !req) {
-     console.log("Client handle: duplicate ack");
       // nothing to do, somehow there was
       // a duplicate ack
       return
     }
 
     if (!req) {
-     console.log("Client handle: not req again");
       buf = generate({
           code: '0.00'
         , reset: true
@@ -213,7 +197,6 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
   req.sender.reset()
 
   if (packet.code == '0.00')
-     console.log("Client handle: 0.00");
     return
 
   var block2Buff = getOption(packet.options, 'Block2')
@@ -223,7 +206,6 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
     block2 = parseBlock2(block2Buff)
     // check for error
     if (!block2) {
-     console.log("Client handle: block2Buff err");
       req.sender.reset()
       return req.emit('error', err)
     }
@@ -246,7 +228,6 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
       })
       if (!block2Val) {
         req.sender.reset()
-         console.log("Client handle: block2Val error");
         return req.emit('error', err)
       }
       req.setOption('Block2', block2Val)
@@ -283,27 +264,18 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
   } else {
     response = new IncomingMessage(packet, rsinfo, outSocket)
   }
-   console.log("Client handle: response");
 
   req.response = response
   req.emit('response', response)
 }
 
 Agent.prototype._nextToken = function nextToken() {
-  var buf = new Buffer(4);
-  
-  if(!this._lastToken){
-     console.log("Error: Undefined _lastToken");
-     this.emit('error', 'UNDEFINED_VARIABLE');
-     throw undefined;
-     return;
-  }
-  
-  if (++this._lastToken === maxToken){
-    this._lastToken = 0
-  }
+  var buf = new Buffer(4)
 
-  buf.writeUInt32BE(this._lastToken, 0);
+  if (++this._lastToken === maxToken)
+    this._lastToken = 0
+
+  buf.writeUInt32BE(this._lastToken, 0)
 
   return buf;
 }
@@ -316,9 +288,8 @@ Agent.prototype._nextMessageId = function nextToken() {
 }
 
 Agent.prototype.request = function request(url) {
-   console.log("Start request");
   this._init()
-  
+
   var req
     , response
     , options = url.options || url.headers
@@ -339,8 +310,6 @@ Agent.prototype.request = function request(url) {
 
     try {
       buf = generate(packet)
-      var test = parse(buf);
-      console.log("Packet send to server: "+  JSON.stringify(test));
     } catch(err) {
       req.sender.reset()
       return req.emit('error', err)
@@ -350,7 +319,6 @@ Agent.prototype.request = function request(url) {
     that._tkToReq[that._lastToken] = req
 
     req.sender.send(buf)
-    
   })
 
   req.sender = new RetrySend(this._sock, url.port, url.hostname || url.host)
@@ -368,6 +336,10 @@ Agent.prototype.request = function request(url) {
         req.setOption(option, options[option])
       }
     }
+  }
+
+  if (url.proxyUri) {
+    req.setOption('Proxy-Uri', url.proxyUri)
   }
 
   req.sender.on('error', req.emit.bind(req, 'error'))
@@ -391,7 +363,7 @@ Agent.prototype.request = function request(url) {
   this._requests++
 
   req._totalPayload = new Buffer(0) 
- 
+
   return req
 }
 
