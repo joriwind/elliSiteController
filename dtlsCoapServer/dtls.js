@@ -106,11 +106,12 @@ Dtls.prototype.awaitConnection = function(arg, callback){
 Dtls.prototype.recvfrom = function(callback){
    console.log("Starting recvfrom thread");
    var that = this;
-   dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [ref.refType(ref.types.char)], 
-                            function (buffer) {  
+   dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', ['string', ref.types.int], 
+                            function (buffer, rcvlen) {  
       //var message = buffer.readCString(buffer,0);
       //var buff = new Buffer(message);
-      var buff = buffer;
+      //var buff = new Buffer(buffer.toString('utf8', 0, rcvlen));
+      var buff = new Buffer(buffer);
       var rsinfo = {'address':that.client_addr, 'port':that.client_port};
       callback(buff, rsinfo); //send back buffer
       //dtlsnew.read();
