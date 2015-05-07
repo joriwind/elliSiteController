@@ -8,7 +8,7 @@ console.log("Print of variable: " + dtlsClientAgent);
 var agent = dtlsClientAgent;
 dtlsClientAgent.on('connected', function(res){
    console.log("Starting request");
-   var req   = coap.request({port:5683, hostname:'::1',method: 'GET',  pathname:'/Lights', agent:agent});
+   var req   = coap.request({port:5683, hostname:'::1',method: 'GET',  'pathname':'/Lights', agent:agent});
    req.on('error', function(err){
       console.log("Something went wrong in request: " + err);
    });
