@@ -166,6 +166,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
         }
       }
    console.log("Client handle: parsed");
+   console.log("Packet from server: " + JSON.stringify(packet));
 
   if (packet.confirmable) {
      console.log("Client handle: confirmable package");
@@ -338,6 +339,8 @@ Agent.prototype.request = function request(url) {
 
     try {
       buf = generate(packet)
+      var test = parse(buf);
+      console.log("Packet send to server: "+  JSON.stringify(test));
     } catch(err) {
       req.sender.reset()
       return req.emit('error', err)

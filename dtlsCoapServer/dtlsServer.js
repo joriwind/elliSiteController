@@ -131,6 +131,8 @@ function handleRequest(server) {
   //return function (msg, rsinfo) {
    return function (msg, rsinfo) {
     //var rsinfo = '';//DTLS connection
+    
+    //console.log("Packet received from client: " + JSON.stringify(parse(msg)));
     var request = {
         raw: msg,
         rsinfo: rsinfo,
@@ -273,6 +275,8 @@ CoAPServer.prototype._handle = function(packet, rsinfo) {
 
     try {
       buf = generate(packet)
+      var test = parse(buf);
+      console.log("Sending to client: " + JSON.stringify(test));
     } catch(err) {
       return response.emit('error', err)
     }
