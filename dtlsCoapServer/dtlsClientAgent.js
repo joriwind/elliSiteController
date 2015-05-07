@@ -165,8 +165,10 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
           that._doClose()
         }
       }
+   console.log("Client handle: parsed");
 
   if (packet.confirmable) {
+     console.log("Client handle: confirmable package");
     buf = generate({
         code: '0.00'
       , ack: true
@@ -178,17 +180,20 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
   }
 
   if (!req) {
+     console.log("Client handle: not req");
     if (packet.token.length == 4) {
       req = this._tkToReq[packet.token.readUInt32BE(0)]
     }
-
+   
     if (packet.ack && !req) {
+     console.log("Client handle: duplicate ack");
       // nothing to do, somehow there was
       // a duplicate ack
       return
     }
 
     if (!req) {
+     console.log("Client handle: not req again");
       buf = generate({
           code: '0.00'
         , reset: true
@@ -207,6 +212,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
   req.sender.reset()
 
   if (packet.code == '0.00')
+     console.log("Client handle: 0.00");
     return
 
   var block2Buff = getOption(packet.options, 'Block2')
@@ -216,6 +222,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
     block2 = parseBlock2(block2Buff)
     // check for error
     if (!block2) {
+     console.log("Client handle: block2Buff err");
       req.sender.reset()
       return req.emit('error', err)
     }
@@ -238,6 +245,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
       })
       if (!block2Val) {
         req.sender.reset()
+         console.log("Client handle: block2Val error");
         return req.emit('error', err)
       }
       req.setOption('Block2', block2Val)
@@ -274,6 +282,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
   } else {
     response = new IncomingMessage(packet, rsinfo, outSocket)
   }
+   console.log("Client handle: response");
 
   req.response = response
   req.emit('response', response)
