@@ -33,6 +33,7 @@ var WOLFSSLPtr = ref.refType(WOLFSSL);
 var MessagePtr = ref.refType(ref.types.char);
 var CharArray = ArrayType('char');
 var CharArrayPtr = ref.refType(CharArray);
+var BUFFF = ref.refType(ref.types.void);
 
 
 var argument = "Hello to JavaScript";
@@ -41,8 +42,8 @@ var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
   'initDTLS': [ 'int', [WOLFSSL_CTXPtr, 'string','string','string', 'int' ] ],
   'connectToServer': ['int', [WOLFSSLPtr, WOLFSSL_CTXPtr, 'string', 'int']],
   'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int', 'pointer', 'pointer']],
-  'readDTLS': ['void',[WOLFSSLPtr, 'pointer', 'pointer']],
-  'writeDTLS': ['void',[WOLFSSLPtr,MessagePtr]],
+  'readDTLS': ['void',[WOLFSSLPtr, 'pointer']],
+  'writeDTLS': ['void',[WOLFSSLPtr, BUFFF]],
   'closeDTLS': ['void',[]],
   'getTypeWOLFSSL_CTX': [WOLFSSL_CTXPtr, []],
   'getTypeWOLFSSL': [WOLFSSLPtr, []]
@@ -110,16 +111,17 @@ Dtls.prototype.awaitConnection = function(arg, callback){
 Dtls.prototype.recvfrom = function(callback){
    console.log("Starting recvfrom thread");
    //var buf = ref.alloc(ref.refType(ref.refType(ref.types.char)));
-   var buf = new Buffer(100);
-   buf.type = ArrayType('char');
+   /*var buf = new Buffer(100);
+   buf.type = ArrayType('char');*/
    var that = this;
-   dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [ ref.types.int], 
-                            function ( rcvlen) {  
+   dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [BUFFF, ref.types.int], 
+                            function (buf, rcvlen) {  
       //var message = buffer.readCString(buffer,0);
       //var buff = new Buffer(message);
       //buffer.type = ref.refType(ref.types.char);
-      buf.length = rcvlen;
-      console.log("Buffer recv: " + buf + ", Length of buff: " + buf.length);
+      //buf.length = rcvlen;
+      //console.log("Buffer recv: " + buf + ", Length of buff: " + buf.length);
+      console.log("Buffer recv: " + buf.toString());
       //var string = buffer.deref();
       //var buff = new Buffer(buffer);
       //console.log("Buffer after recv: " + buff);
@@ -127,7 +129,7 @@ Dtls.prototype.recvfrom = function(callback){
       var rsinfo = {'address':that.client_addr, 'port':that.client_port};
       callback(buf, rsinfo); //send back buffer
       //dtlsnew.read();
-   }), buf, function(err, res){
+   }), function(err, res){
       return;
    });
    
