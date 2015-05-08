@@ -132,7 +132,7 @@ function handleRequest(server) {
    return function (msg, rsinfo) {
     //var rsinfo = '';//DTLS connection
     
-    //console.log("Packet received from client: " + JSON.stringify(parse(msg)));
+    console.log("Packet received from client: " + JSON.stringify(parse(msg)));
     var request = {
         raw: msg,
         rsinfo: rsinfo,

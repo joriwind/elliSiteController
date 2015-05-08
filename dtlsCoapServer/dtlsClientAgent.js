@@ -313,7 +313,7 @@ Agent.prototype.request = function request(url) {
       
       var test = parse(buf);
       console.log("////////TEST////////");
-      console.log("Buffer: " + buf);
+      console.log("Buffer: " + buf + ", Length: " + buf.length);
       console.log("Initial packet send to server: " + JSON.stringify(test));
       /*var changedbuf = buf.toString();
       var newbuf = new Buffer(changedbuf);

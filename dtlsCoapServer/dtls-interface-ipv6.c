@@ -43,12 +43,12 @@
 static int cleanup;                 /* To handle shutdown */
 
 /* Callback function*/
-typedef int (*callbackFt)(char* message, int msglen);
+typedef int (*callbackFt)(int msglen);
 
 int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, int isServer);
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
 int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port, char** addressClient, int* portClient);
-void readDTLS(WOLFSSL** ssl, callbackFt fct);
+void readDTLS(WOLFSSL** ssl, callbackFt fct, char** mess);
 void writeDTLS(WOLFSSL** ssl, char* message);
 void closeDTLS();
 
@@ -486,7 +486,7 @@ int main(int argc, char** argv)
    }
    
    //writeDTLS(&ssl, "Hello this is a test\n");
-   readDTLS(&ssl, processData); //inplement test callback!?
+   //readDTLS(&ssl, processData); //inplement test callback!?
    
    closeDTLS();
 
@@ -585,9 +585,10 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
 /**
  * Do read while cleanup != 1, send received messages back to callback function
 **/
-void readDTLS(WOLFSSL** ssl, callbackFt fct){
+void readDTLS(WOLFSSL** ssl, callbackFt fct, char** mess){
    /* Begin do-while read */
    char buff[MSGLEN];
+   char cpy[MSGLEN];
    int recvLen;
    int readWriteErr;
    printf("Starting to read\n");
@@ -620,8 +621,12 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
 
       if (recvLen > 0) {
                   
-         printf("I heard this:\"%s\"\n", buff);
-         (*fct)(buff, recvLen);
+         printf("I heard this: %s, length: %i\n", buff, recvLen);
+         memset(cpy, '\0', sizeof(cpy));
+         int len = recvLen;
+         *mess = strncpy(cpy, buff, recvLen);
+         printf("I heard this(change: %s\n", *mess);
+         (*fct)(recvLen);
       } 
       else {
          //printf("Connection Timed Out.\n");
@@ -635,7 +640,7 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
 **/
 void writeDTLS(WOLFSSL** ssl, char* message){
    /* Begin do-while write */
-   printf("I am going to write: %s\n", message);
+   printf("I am going to write: %s Length: %i\n", message, strlen(message));
    int readWriteErr;
    char    ack[] = "I hear you fashizzle\n";
    do {
