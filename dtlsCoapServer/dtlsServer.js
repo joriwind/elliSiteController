@@ -130,9 +130,8 @@ CoAPServer.prototype._sendReverseProxied = function(packet, rsinfo, callback) {
 function handleRequest(server) {
   //return function (msg, rsinfo) {
    return function (msg, rsinfo) {
-    //var rsinfo = '';//DTLS connection
     
-    console.log("Packet received from client: " + JSON.stringify(parse(msg)));
+    //console.log("Packet received from client: " + JSON.stringify(parse(msg)));
     var request = {
         raw: msg,
         rsinfo: rsinfo,
@@ -240,7 +239,7 @@ CoAPServer.prototype.close = function(done) {
 
 CoAPServer.prototype._handle = function(packet, rsinfo) {
    
-   console.log("Packet received from client: " + JSON.stringify(packet));
+   //console.log("Packet received from client: " + JSON.stringify(packet));
 
   var sock      = this._sock
     , lru       = this._lru

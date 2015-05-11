@@ -156,7 +156,7 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
         }
       }
       
-   console.log("Packet received from server: " + JSON.stringify(packet));
+   //console.log("Packet received from server: " + JSON.stringify(packet));
 
   if (packet.confirmable) {
     buf = generate({
@@ -314,18 +314,10 @@ Agent.prototype.request = function request(url) {
       buf = generate(packet)
       
       var test = parse(buf);
-      console.log("////////TEST////////");
-      console.log("Buffer: " + buf + ", Length: " + buf.length);
-      console.log("Initial packet send to server: " + JSON.stringify(test));
-      /*var changedbuf = buf.toString();
-      var newbuf = new Buffer(changedbuf);
-      var changedtest = parse(newbuf);
-      console.log("Buffer(new): " + newbuf);
-      console.log("After change packet send to server: " + JSON.stringify(changedtest));
+      //console.log("////////TEST////////");
+      //console.log("Buffer: " + buf + ", Length: " + buf.length);
+      //console.log("Initial packet send to server: " + JSON.stringify(test));
       
-      if(newbuf == buf){
-         console.log("????????????????REALY THE SAME???????????????????????");
-      }*/
       
     } catch(err) {
       req.sender.reset()
