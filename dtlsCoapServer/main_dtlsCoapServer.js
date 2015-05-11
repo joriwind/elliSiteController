@@ -6,6 +6,11 @@ server.on('request', function(req, res) {
   console.log("Received message from client: " + req.url.split('/')[1]  + '\nMessage payload:S:' + req.payload+':E\n');
   var js = JSON.parse(req.payload);
   console.log("Title: " + js.title);
+  if(req.headers['Accept'] != 'application/json'){
+     console.log("Not JSON");
+  }else{
+     console.log("JSON format");
+  }
   
   
   //console.log("Title: " + js.title);

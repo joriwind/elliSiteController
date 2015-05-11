@@ -41,9 +41,7 @@ var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
   'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int', 'pointer', 'pointer']],
   'readDTLS': ['void',[WOLFSSLPtr, 'pointer']],
   'writeDTLS': ['void',[WOLFSSLPtr, BUFFF, 'int']],
-  'closeDTLS': ['void',[]],
-  'getTypeWOLFSSL_CTX': [WOLFSSL_CTXPtr, []],
-  'getTypeWOLFSSL': [WOLFSSLPtr, []]
+  'closeDTLS': ['void',[]]
 });
 
 Dtls.prototype.initDTLS = function(arg, callback){
