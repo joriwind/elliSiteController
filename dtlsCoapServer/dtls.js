@@ -121,7 +121,8 @@ Dtls.prototype.recvfrom = function(callback){
       //buffer.type = ref.refType(ref.types.char);
       //buf.length = rcvlen;
       //console.log("Buffer recv: " + buf + ", Length of buff: " + buf.length);
-      var data = ref.reinterpret(buf, ref.types.int.size * rcvlen, 0);
+      var data = ref.reinterpret(buf,  rcvlen, 0);
+      //ref.types.int.size *
        /*for (var i = 0; i < rcvlen; i++) {
            ref.types.int.get(data, i * ref.types.int.size);
        }*/

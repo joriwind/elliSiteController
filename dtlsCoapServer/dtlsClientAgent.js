@@ -155,6 +155,8 @@ Agent.prototype._handle = function handle(msg, rsinfo, outSocket) {
           that._doClose()
         }
       }
+      
+   console.log("Packet received from server: " + JSON.stringify(packet));
 
   if (packet.confirmable) {
     buf = generate({
