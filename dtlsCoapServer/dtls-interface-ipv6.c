@@ -49,7 +49,7 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
 int connectToServer(WOLFSSL** ssl, WOLFSSL_CTX** ctx, char* host, int port);    /* Separate out Handling Datagrams */
 int awaitConnection(WOLFSSL** ssl, WOLFSSL_CTX** ctx, int port, char** addressClient, int* portClient);
 void readDTLS(WOLFSSL** ssl, callbackFt fct);
-void writeDTLS(WOLFSSL** ssl, void* message);
+void writeDTLS(WOLFSSL** ssl, void* message, int msglen);
 void closeDTLS();
 
 WOLFSSL_CTX** getTypeWOLFSSL_CTX(void);
@@ -640,9 +640,9 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
 /**
  * Send a message to peer specified in WOLFSSL* object
 **/
-void writeDTLS(WOLFSSL** ssl, void* message){
+void writeDTLS(WOLFSSL** ssl, void* message, int msglen){
    /* Begin do-while write */
-   printf("I am going to write: %s Length: %i\n", (char *)message, strlen(message));
+   printf("I am going to write: %s Length: %i\n", (char *)message, msglen);
    int readWriteErr;
    //char    ack[] = "I hear you fashizzle\n";
    do {
@@ -651,7 +651,7 @@ void writeDTLS(WOLFSSL** ssl, void* message){
       //    break;
       //}
       readWriteErr = wolfSSL_get_error(*ssl, 0);
-      if (wolfSSL_write(*ssl, message, strlen(message)) < 0) {
+      if (wolfSSL_write(*ssl, message, msglen) < 0) {
           printf("Write error.\n");
           cleanup = 1;
           return;

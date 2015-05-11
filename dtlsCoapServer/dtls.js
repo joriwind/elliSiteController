@@ -33,7 +33,7 @@ var WOLFSSLPtr = ref.refType(WOLFSSL);
 var MessagePtr = ref.refType(ref.types.char);
 var CharArray = ArrayType('char');
 var CharArrayPtr = ref.refType(CharArray);
-var BUFFF = ref.refType(ref.types.void);
+var BUFFF = ref.refType(ref.types.int);
 
 
 var argument = "Hello to JavaScript";
@@ -43,7 +43,7 @@ var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
   'connectToServer': ['int', [WOLFSSLPtr, WOLFSSL_CTXPtr, 'string', 'int']],
   'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int', 'pointer', 'pointer']],
   'readDTLS': ['void',[WOLFSSLPtr, 'pointer']],
-  'writeDTLS': ['void',[WOLFSSLPtr, BUFFF]],
+  'writeDTLS': ['void',[WOLFSSLPtr, BUFFF, 'int']],
   'closeDTLS': ['void',[]],
   'getTypeWOLFSSL_CTX': [WOLFSSL_CTXPtr, []],
   'getTypeWOLFSSL': [WOLFSSLPtr, []]
@@ -139,8 +139,8 @@ Dtls.prototype.recvfrom = function(callback){
    
 }
 
-Dtls.prototype.sendto = function(message){
-   dtls_interface.writeDTLS.async(this.WOLFSSL, message, function(err, res){
+Dtls.prototype.sendto = function(message, msglen){
+   dtls_interface.writeDTLS.async(this.WOLFSSL, message, msglen, function(err, res){
       return;
    });
 }
@@ -150,7 +150,7 @@ Dtls.prototype.sendto = function(message){
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
    console.log("Send message");
    //this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
-   this.sendto(message);
+   this.sendto(message, msglen);
    var err = 0;
    if(typeof ack === 'function'){
       ack(err);
@@ -162,7 +162,7 @@ Dtls.prototype.send = function(message, number, msglen, port, address){
    //console.log("Is utf8 encoding: " + message.isEncoding('utf8'));
    console.log("Send message");
    //this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
-   this.sendto(message);
+   this.sendto(message, msglen);
 }
 
 Dtls.prototype.address = function(){

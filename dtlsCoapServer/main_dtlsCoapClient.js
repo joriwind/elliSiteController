@@ -9,6 +9,13 @@ var agent = dtlsClientAgent;
 dtlsClientAgent.on('connected', function(res){
    console.log("Starting request");
    var req   = coap.request({'port':5683, 'hostname':'::1', 'pathname':'/Lights', 'agent':agent});
+   
+   var payload = { title: 'This is a test payload', 
+               body: 'containing nothing useful'
+   }
+   
+   req.write(JSON.stringify(payload));
+   
    req.on('error', function(err){
       console.log("Something went wrong in request: " + err);
    });

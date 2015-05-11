@@ -3,8 +3,13 @@ var Server  = require('./dtlsServer');
 var server      = new Server({ type: 'udp6' })
 
 server.on('request', function(req, res) {
-  console.log("Received message from client: " + req.url.split('/')[1]);
-  console.log("Message tostring: " + req.url.toString());
+  console.log("Received message from client: " + req.url.split('/')[1]  + '\nMessage payload:\n' + req.payload+'\n');
+  var js = JSON.parse(req.payload.toString());
+  if(js instanceof Error){
+     console.log("Error in parsing payload");
+  }
+  
+  //console.log("Title: " + js.title);
   res.end('Hello ' + req.url.split('/')[1] + '\n')
 })
 
