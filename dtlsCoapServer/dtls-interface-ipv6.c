@@ -62,15 +62,6 @@ enum {
     TEST_ERROR_READY
 };
 
-WOLFSSL_CTX** getTypeWOLFSSL_CTX(void){
-   WOLFSSL_CTX* ctx;
-   return &ctx;
-}
-
-WOLFSSL** getTypeWOLFSSL(void){
-   WOLFSSL* ssl;
-   return &ssl;
-}
 
 static INLINE int tcp_select(int socketfd, int to_sec)
 {
@@ -588,9 +579,6 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
 void readDTLS(WOLFSSL** ssl, callbackFt fct){
    /* Begin do-while read */
    int buff[MSGLEN];
-   //void* buff;
-   //memset(buff, '\0', sizeof(buff));
-   //char cpy[MSGLEN];
    int recvLen;
    int readWriteErr;
    printf("Starting to read\n");
@@ -624,10 +612,6 @@ void readDTLS(WOLFSSL** ssl, callbackFt fct){
       if (recvLen > 0) {
                   
          printf("I heard this: %s, length: %i\n", (char *) buff, recvLen);
-         /*memset(cpy, '\0', sizeof(cpy));
-         int len = recvLen;
-         *mess = strncpy(cpy, buff, recvLen);
-         printf("I heard this(change: %s\n", *mess);*/
          (*fct)(buff, recvLen);
       } 
       else {
@@ -644,7 +628,6 @@ void writeDTLS(WOLFSSL** ssl, void* message, int msglen){
    /* Begin do-while write */
    printf("I am going to write: %s Length: %i\n", (char *)message, msglen);
    int readWriteErr;
-   //char    ack[] = "I hear you fashizzle\n";
    do {
       //if (cleanup == 1) {
       //    memset(&buff, 0, sizeof(buff));

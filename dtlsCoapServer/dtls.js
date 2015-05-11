@@ -30,9 +30,6 @@ var WOLFSSL_CTX = ref.types.void; // we don't know what the layout of "WOLFSSL_C
 var WOLFSSL_CTXPtr = ref.refType(WOLFSSL_CTX);
 var WOLFSSL = ref.types.void;// we don't know what the layout of "WOLFSSL" looks like
 var WOLFSSLPtr = ref.refType(WOLFSSL);
-var MessagePtr = ref.refType(ref.types.char);
-var CharArray = ArrayType('char');
-var CharArrayPtr = ref.refType(CharArray);
 var BUFFF = ref.refType(ref.types.int);
 
 
@@ -110,30 +107,15 @@ Dtls.prototype.awaitConnection = function(arg, callback){
 
 Dtls.prototype.recvfrom = function(callback){
    console.log("Starting recvfrom thread");
-   //var buf = ref.alloc(ref.refType(ref.refType(ref.types.char)));
-   /*var buf = new Buffer(100);
-   buf.type = ArrayType('char');*/
    var that = this;
    dtls_interface.readDTLS.async(this.WOLFSSL, ffi.Callback('void', [BUFFF, ref.types.int], 
                             function (buf, rcvlen) {  
-      //var message = buffer.readCString(buffer,0);
-      //var buff = new Buffer(message);
-      //buffer.type = ref.refType(ref.types.char);
-      //buf.length = rcvlen;
-      //console.log("Buffer recv: " + buf + ", Length of buff: " + buf.length);
       var data = ref.reinterpret(buf,  rcvlen, 0);
-      //ref.types.int.size *
-       /*for (var i = 0; i < rcvlen; i++) {
-           ref.types.int.get(data, i * ref.types.int.size);
-       }*/
-      console.log("Buffer recv: " + data);
-      //var string = buffer.deref();
-      //var buff = new Buffer(buffer);
-      //console.log("Buffer after recv: " + buff);
-      //var buff = new Buffer(buffer);
+      
+      //console.log("Buffer recv: " + data);
+      
       var rsinfo = {'address':that.client_addr, 'port':that.client_port};
       callback(data, rsinfo); //send back buffer
-      //dtlsnew.read();
    }), function(err, res){
       return;
    });
@@ -150,7 +132,6 @@ Dtls.prototype.sendto = function(message, msglen){
 
 Dtls.prototype.send = function(message, number, msglen, port, address, ack){
    console.log("Send message");
-   //this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
    this.sendto(message, msglen);
    var err = 0;
    if(typeof ack === 'function'){
@@ -159,10 +140,7 @@ Dtls.prototype.send = function(message, number, msglen, port, address, ack){
 }
 
 Dtls.prototype.send = function(message, number, msglen, port, address){
-   //console.log("Is ascii encoding: " + message.isEncoding('ascii'));
-   //console.log("Is utf8 encoding: " + message.isEncoding('utf8'));
    console.log("Send message");
-   //this.sendto(message.toString('utf8', 0, msglen)); //message is of type: Buffer
    this.sendto(message, msglen);
 }
 
@@ -192,8 +170,6 @@ Dtls.prototype.testRepeat = function(){
    });
 }
 
-//var dtls = new Dtls();
-//dtls.testRepeat();
 
 module.exports = Dtls;
 
