@@ -587,7 +587,7 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
 **/
 void readDTLS(WOLFSSL** ssl, callbackFt fct){
    /* Begin do-while read */
-   char buff[MSGLEN];
+   int buff[MSGLEN];
    //void* buff;
    //memset(buff, '\0', sizeof(buff));
    //char cpy[MSGLEN];

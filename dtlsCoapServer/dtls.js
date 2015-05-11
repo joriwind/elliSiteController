@@ -121,13 +121,17 @@ Dtls.prototype.recvfrom = function(callback){
       //buffer.type = ref.refType(ref.types.char);
       //buf.length = rcvlen;
       //console.log("Buffer recv: " + buf + ", Length of buff: " + buf.length);
-      console.log("Buffer recv: " + buf.toString());
+      var data = ref.reinterpret(buf, ref.types.int.size * rcvlen, 0);
+       /*for (var i = 0; i < rcvlen; i++) {
+           ref.types.int.get(data, i * ref.types.int.size);
+       }*/
+      console.log("Buffer recv: " + data);
       //var string = buffer.deref();
       //var buff = new Buffer(buffer);
       //console.log("Buffer after recv: " + buff);
       //var buff = new Buffer(buffer);
       var rsinfo = {'address':that.client_addr, 'port':that.client_port};
-      callback(buf, rsinfo); //send back buffer
+      callback(data, rsinfo); //send back buffer
       //dtlsnew.read();
    }), function(err, res){
       return;
