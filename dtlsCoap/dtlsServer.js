@@ -183,8 +183,10 @@ CoAPServer.prototype.listen = function(port, address, done) {
       this._options.ourCert = ''
    if(!this._options.ourKey)
       this._options.ourKey = ''
-   if(!this._options.port)
-      this._options.port = 5683
+   if(!this._options.port){
+      this._options.port = port;
+   }
+      
    
    
   //this._sock = dgram.createSocket(this._options.type, handleRequest(this))
