@@ -1,0 +1,13 @@
+//Key generation
+openssl ecparam -in secp256k1.pem -genkey -noout -out secp256k1-key.pem
+
+//CA certificate generation(self-signed cert)
+openssl req -new -x509 -nodes -sha1 -days 1000 -key ca-key.pem > ca-cert.pem
+
+//Cert request generation
+openssl req -new -key key.pem -sha1 -days 1000 -out req.pem
+
+//Cert generation
+openssl x509 -req -in server-req.pem -days 1000 
+   -sha1 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01
+                                             > server-cert.pem
