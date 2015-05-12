@@ -105,13 +105,44 @@ server.on('new_node', function(nodeAnouncement){
 /** Terminal usage **/
 process.stdin.on('data', function (text) {
    //console.log('received data:', util.inspect(text));
-   var command = text.split(' ');
+   var command = (text.split('\n'))[0].split(' '); //remove '\n' and then split on spaces
    console.log("Command is: " + command[0] + " ,full with attributes: " + command);
    switch(command[0]){
-      case 'list\n':
+      case 'list':
          //show list
+         console.log("List of nodes: " + JSON.stringify(nodes));
          break;
-      case 'quit\n':
+      case 'indexof':
+         if(command[1]){
+            nodes.forEach(function(object){
+               if(object.node.name == command[1]){
+                  var index = nodes.indexOf(object);
+               }
+            });
+         }else{
+            console.log("Give name of node");
+         }
+         break;
+      case 'ping':
+         if(command[1]){
+            nodes.forEach(function(object){
+               if(object.node.name == command[1]){
+                  executeRequest(object.connection, '/ping', undefined, function(payload){
+                     console.log("Response of server: " + payload.toString());
+                  });
+                  return;
+               }else{
+                  if(nodes.indexOf(object) == (nodes.length - 1)){
+                     console.log("No node available under that name");
+                  }
+               }
+            });
+            
+         }else{
+            console.log("Give name of node to ping");
+         }
+         break;
+      case 'quit':
          done();
          break;
       default:
@@ -121,8 +152,27 @@ process.stdin.on('data', function (text) {
    
 });
 
+function executeRequest(dtlsClientAgent, route, payload, callback){
+   var req   = coap.request({pathname: route, 'agent':dtlsClientAgent});
+   
+   if(payload){
+      req.write(JSON.stringify(payload));
+   }
+   
+   req.on('error', function(err){
+      console.log("Something went wrong in request: " + err);
+   });
+   req.on('response', function(res) {
+      //console.log("Response of server: " + JSON.stringify(res.payload));
+      callback(res.payload);
+      //res.pipe(process.stdout)
+   })
+   req.end()
+}
+
 function done() {
    console.log('Now that process.stdin is paused, there is nothing more to do.');
+   
    process.exit();
 }
 

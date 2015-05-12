@@ -7,15 +7,17 @@ server.on('request', function(req, res) {
    var route = req.url.split('/')[1];
    console.log("Received message from client: " + route  + '\nMessage payload:S:' + req.payload+':E\n');
   
-   //Parse packet
-   try{
-   var js = JSON.parse(req.payload);
-   console.log("Packet parsed: " + JSON.stringify(js));
-   }catch (e){
-     //Could not parse JSON -> send error to client
-     console.log(e);
-     res.code = '4.06';
-     return res.end();
+   if(req.payload[0]){
+      //Parse packet
+      try{
+         var js = JSON.parse(req.payload);
+         console.log("Packet parsed: " + JSON.stringify(js));
+      }catch (e){
+        //Could not parse JSON -> send error to client
+        console.log(e);
+        res.code = '4.06';
+        return res.end();
+      }
    }
    
    //Endpoints
