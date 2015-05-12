@@ -125,21 +125,30 @@ process.stdin.on('data', function (text) {
          break;
       case 'ping':
          if(command[1]){
-            nodes.forEach(function(object){
-               if(object.node.name == command[1]){
-                  executeRequest(object.connection, '/ping', undefined, function(payload){
+            getNodeObject(command[1], function(object){
+               executeRequest(object.connection, '/ping', undefined, function(payload){
                      console.log("Response of server: " + payload.toString());
-                  });
-                  return;
-               }else{
-                  if(nodes.indexOf(object) == (nodes.length - 1)){
-                     console.log("No node available under that name");
-                  }
-               }
+               });
             });
-            
+                        
          }else{
             console.log("Give name of node to ping");
+         }
+         break;
+      case 'request':
+         var name = command[1];
+         var route = command[2];
+         var payload = command[3];
+         
+         if(name && route){
+            getNodeObject(name, function(object){
+               executeRequest(object.connection, route, payload, function(payload){
+                  console.log("Response of server(String): " + payload.toString());
+                  console.log("Response of server(JSONString): " + JSON.stringify(payload));
+               });
+            });
+         }else{
+            console.log("Fill in name and route, payload optionally");
          }
          break;
       case 'quit':
@@ -151,6 +160,23 @@ process.stdin.on('data', function (text) {
    }
    
 });
+
+function getNodeObject(name, callback){
+   if(nodes.length == 0){
+      console.log("No nodes available");
+      return;
+   }
+   nodes.forEach(function(object){
+      if(object.node.name == name){
+         callback(object);
+         return;
+      }else{
+         if(nodes.indexOf(object) == (nodes.length - 1)){
+            console.log("No node available under that name");
+         }
+      }
+   });
+}
 
 function executeRequest(dtlsClientAgent, route, payload, callback){
    var req   = coap.request({pathname: route, 'agent':dtlsClientAgent});
