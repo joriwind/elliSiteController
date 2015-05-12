@@ -47,8 +47,8 @@ server.listen(11111, function() {
 server.on('awaitingConnection', function(){
    console.log("Awainting an connection");
    //Initialize Agent, setup ctx --> ready to establish connection.
-   
-   var req = coap.request('coap://[::1]/');
+   console.log("Sending an service announcement");
+   var req = coap.request('coap://[::1]/nodes');
    var payload = {name: 'node1', type: 'ell-i'}
    
    req.write(JSON.stringify(payload));

@@ -27,11 +27,13 @@ server.on('request', function(req, res){
             break;
          default:
             //Not supported type
+            console.log("Not supported type");
             res.code = '4.01';
             break;
          
       }
    }else{
+      console.log("Not supported route");
       res.code = '4.01';
    }
    
