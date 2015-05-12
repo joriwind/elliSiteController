@@ -35,7 +35,7 @@ var BUFFF = ref.refType(ref.types.int);
 
 var argument = "Hello to JavaScript";
 
-var dtls_interface = ffi.Library('./dtls_interface_ipv6', {
+var dtls_interface = ffi.Library('./dtlsCoap/dtls_interface_ipv6', {
   'initDTLS': [ 'int', [WOLFSSL_CTXPtr, 'string','string','string', 'int' ] ],
   'connectToServer': ['int', [WOLFSSLPtr, WOLFSSL_CTXPtr, 'string', 'int']],
   'awaitConnection': ['int',[WOLFSSLPtr, WOLFSSL_CTXPtr, 'int', 'pointer', 'pointer']],

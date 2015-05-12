@@ -21,7 +21,7 @@ server.on('request', function(req, res){
       }
       
       switch(node.type){
-         case ell-i:
+         case 'ell-i':
             var nodeAnn = {node: node, rsinfo: req.rsinfo};
             server.emit('new_node', nodeAnn);
             break;
@@ -40,7 +40,9 @@ server.on('request', function(req, res){
       
 });
 
-server.listen(function(){});
+server.listen(function(){
+   console.log("Started listening for nodes");
+});
 
 server.on('new_node', function(nodeAnouncement){
    var nodeConnection;
@@ -56,9 +58,9 @@ server.on('new_node', function(nodeAnouncement){
    
    //Initialize Agent, setup ctx --> ready to establish connection.
    console.log("Connection with node: " + node + " on ip: " 
-                           + rsinfo.address + " : " + rsinfo.port);
+                           + rsinfo.address + " : " + 11111); //Juiste poort?
    var dtlsClientAgent = new DtlsClientAgent({'type':'dtls_client', 'eccCert':'./certs/server-ecc.pem',
-                     'ourCert':'./certs/client-ecc-cert.pem', 'ourKey':'./certs/ecc-client-key.pem', 'host':rsinfo.address, 'port':rsinfo.port});
+                     'ourCert':'./certs/client-ecc-cert.pem', 'ourKey':'./certs/ecc-client-key.pem', 'host':rsinfo.address, 'port':11111});
 
    dtlsClientAgent.on('connected', function(res){
       console.log("Connected to node: " + JSON.stringify(node));
