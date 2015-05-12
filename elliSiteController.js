@@ -115,7 +115,8 @@ process.stdin.on('data', function (text) {
          done();
          break;
       default:
-         console.log("Did not understand command!");
+         console.log("Did not understand command: " + command[0]);
+         break;
    }
    
 });
