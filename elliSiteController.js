@@ -1,7 +1,13 @@
 const coap  = require('coap'); // or coap 
 var DtlsClientAgent = require('./dtlsCoap/dtlsClientAgent');
+var util = require('util');
 
+/* Set up server, listening to service announcements */
 var server = coap.createServer({type: 'udp6'});
+
+/* Set up terminal, listening for commands */
+process.stdin.resume();
+process.stdin.setEncoding('utf8');
 
 //Contains all the nodes with connections if available
 //typedef: {Node, rsinfo, DtlsClientAgent}
@@ -95,4 +101,27 @@ server.on('new_node', function(nodeAnouncement){
       
    });
 });
+
+/** Terminal usage **/
+process.stdin.on('data', function (text) {
+   //console.log('received data:', util.inspect(text));
+   var command = text.split(' ');
+   console.log("Command is: " + command[0] + " ,full with attributes: " + command);
+   switch(command[0]){
+      case 'list\n':
+         //show list
+         break;
+      case 'quit\n':
+         done();
+         break;
+      default:
+         console.log("Did not understand command!");
+   }
+   
+});
+
+function done() {
+   console.log('Now that process.stdin is paused, there is nothing more to do.');
+   process.exit();
+}
 
