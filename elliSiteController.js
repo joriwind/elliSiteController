@@ -172,7 +172,9 @@ function executeRequest(dtlsClientAgent, route, payload, callback){
 
 function done() {
    console.log('Now that process.stdin is paused, there is nothing more to do.');
-   
+   nodes.forEach(function(object){
+      object.connection._doClose();
+   });
    process.exit();
 }
 
