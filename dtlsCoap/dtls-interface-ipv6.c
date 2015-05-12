@@ -534,7 +534,7 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
 
 
    /* "./config --enable-debug" and uncomment next line for debugging */
-   //wolfSSL_Debugging_ON(); 
+   wolfSSL_Debugging_ON(); 
 
    /* Initialize WOLFSSL */
    wolfSSL_Init();
@@ -550,8 +550,8 @@ int initDTLS(WOLFSSL_CTX** ctx, char* verifyCert, char* ourCert, char* ourKey, i
    }
 
    /* Load CA certificates */
-   wolfSSL_CTX_set_verify(*ctx, SSL_VERIFY_PEER |
-                                SSL_VERIFY_FAIL_IF_NO_PEER_CERT, myVerify);
+   //wolfSSL_CTX_set_verify(*ctx, SSL_VERIFY_PEER |
+   //                             SSL_VERIFY_FAIL_IF_NO_PEER_CERT, myVerify);
    if ((err = wolfSSL_CTX_load_verify_locations(*ctx,verifyCert,0)) != SSL_SUCCESS) {
      printf("Error loading %s, please check the file.\n", verifyCert);
      return err;
