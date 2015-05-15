@@ -1,7 +1,7 @@
 var coap        = require('coap');
 var Server  = require('./dtlsCoap/dtlsServer');
-var server      = new Server({ type: 'udp6' , eccCert: './certs/server-cert.pem',
-                                 ourCert: './certs/server-cert.pem', ourKey:'./certs/server-key.pem'})
+var server      = new Server({ type: 'udp6' , eccCert: './certs/ca-cert.pem',
+                                 ourCert: './certs/server-cert.pem', ourKey:'./certs/server-key.der'})
 
 server.on('request', function(req, res) {
    var route = req.url.split('/')[1];

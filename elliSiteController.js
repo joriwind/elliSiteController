@@ -67,7 +67,7 @@ server.on('new_node', function(nodeAnouncement){
    //Initialize Agent, setup ctx --> ready to establish connection.
    console.log("Connection with node: " + node + " on ip: " 
                            + rsinfo.address + " : " + 11111); //Juiste poort?
-   var dtlsClientAgent = new DtlsClientAgent({'type':'dtls_client', 'eccCert':'./certs/client-cert.pem',
+   var dtlsClientAgent = new DtlsClientAgent({'type':'dtls_client', 'eccCert':'./certs/ca-cert.pem',
                      'ourCert':'./certs/client-cert.pem', 'ourKey':'./certs/client-key.pem', 'host':rsinfo.address, 'port':11111});
 
    dtlsClientAgent.on('connected', function(res){
