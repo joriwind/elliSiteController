@@ -5,7 +5,7 @@ var http = require('http');
 /** Configuration and setup of socks over ssh**/
 
 var ssh_config = {
-  host: '127.0.0.1',
+  host: '192.168.0.159',
   port: 2222,
    username: 'vagrant',
    privateKey: require('fs').readFileSync('id_rsa')
