@@ -1,0 +1,1 @@
+cmd_Release/pcre.a := ln -f "Release/obj.target/deps/libmagic/pcre/pcre.a" "Release/pcre.a" 2>/dev/null || (rm -rf "Release/pcre.a" && cp -af "Release/obj.target/deps/libmagic/pcre/pcre.a" "Release/pcre.a")
