@@ -4,7 +4,7 @@ var http = require('http');
 
 var fs = require('fs');
 var path = require('path');
-var mmm = require('mmagic');
+var mmm = require('mmmagic');
 
 Magic = mmm.Magic;
 
