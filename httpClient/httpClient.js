@@ -2,11 +2,17 @@ var socks = require('socksv5');
 var Client = require('ssh2').Client;
 var http = require('http');
 
+var fs = require('fs');
+var path = require('path');
+var mmm = require('mmagic');
+
+Magic = mmm.Magic;
+
 /** Configuration and setup of socks over ssh**/
 
 var ssh_config = {
-  host: '192.168.0.159',
-  port: 2222,
+  host: '192.168.0.254',
+  port: 22,
    username: 'vagrant',
    privateKey: require('fs').readFileSync('id_rsa')
 };
@@ -172,22 +178,66 @@ HttpClient.prototype.insertSiteController = function (jsonObject, callback){
 }
 
 
+HttpClient.prototype.cert_req = function (file_loc, callback){
+   var filePath = path.join(__dirname, file_loc);
+   //var stat = fs.statSync(filePath);
+   
+   var post_data = fs.createReadStream(filePath);
+   
+   var contentType;
+   var magic = new Magic(mmm.MAGIC_MIME_TYPE);
+   magic.detectFile(file_loc, function(err, result){
+      if(err) throw err;
+      console.log("Type of file: " + file_loc + " is: " + result);
+      contentType = result;
+   });
+   
+   var post_req = http.request({
+        host: 'localhost',
+        port: 1080,
+        path: '/api/cert_req/',
+        method: 'post',
+        form: post_data,
+        agent: new socks.HttpAgent(socksConfig),
+        headers: {
+        'Content-Type': contentType,
+        'Content-Length': post_data.length,
+         }
+    }, function(response) {
+        response.setEncoding('utf8');
+        //console.log("Post data: " + post_data);
+        response.on('readable', function(){
+           var jsonObject;
+           var result;
+           if(!(result = response.read())){
+               jsonObject = JSON.parse(result);
+           }
+           callback(jsonObject);
+        });
+    });
+    
+    post_req.write(post_data);
+    post_req.end();
+    
+}
+
+
 /** Testing purposes **/
 var client = new HttpClient(function(){
-   /*
+   
    client.getNodes(function (object){
       console.log("All the nodes of the db: " + JSON.stringify(object));
    });
-
+   /*
    client.getNode(44,function (object){
       console.log("For id= 44 I got: " + JSON.stringify(object));
    });
    */
-   
+   /*
    var node = {id:"6", pk:"C", "idSC":"5"};
    client.insertNode(node,function (object){
       console.log("Response of POST node: " + JSON.stringify(object) );
-   });
+   });*/
    
    /*
    var siteController = {id:"6"};
@@ -195,6 +245,11 @@ var client = new HttpClient(function(){
    client.insertSiteController(siteController,function (object){
       console.log("Response of POST siteController: " + JSON.stringify(object) );
    });*/
+   
+   client.cert_req('../client-key.der', function(object){
+      console.log("Received: " + object);
+      
+   });
 });
 
 /**Exports**/
