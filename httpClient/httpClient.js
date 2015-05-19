@@ -246,7 +246,7 @@ var client = new HttpClient(function(){
       console.log("Response of POST siteController: " + JSON.stringify(object) );
    });*/
    
-   client.cert_req('../client-key.der', function(object){
+   client.cert_req('../certs/client-key.der', function(object){
       console.log("Received: " + object);
       
    });
