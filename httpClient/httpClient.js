@@ -216,7 +216,7 @@ HttpClient.prototype.cert_req = function (file_loc, callback){
         });
     });
     
-    post_req.write(post_data);
+    //post_req.write(post_data);
     post_req.end();
     
 }
