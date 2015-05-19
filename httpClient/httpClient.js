@@ -11,7 +11,7 @@ Magic = mmm.Magic;
 /** Configuration and setup of socks over ssh**/
 
 var ssh_config = {
-  host: '192.168.0.254',
+  host: '192.168.0.245',
   port: 22,
    username: 'vagrant',
    privateKey: require('fs').readFileSync('id_rsa')
@@ -246,7 +246,7 @@ var client = new HttpClient(function(){
       console.log("Response of POST siteController: " + JSON.stringify(object) );
    });*/
    
-   client.cert_req('../certs/client-key.der', function(object){
+   client.cert_req('../certs/client-key.pem', function(object){
       console.log("Received: " + object);
       
    });
